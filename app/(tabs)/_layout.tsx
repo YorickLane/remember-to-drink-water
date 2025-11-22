@@ -1,5 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -20,14 +22,24 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '今日',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) =>
+            Platform.OS === 'ios' ? (
+              <IconSymbol size={28} name="house.fill" color={color} />
+            ) : (
+              <Ionicons name="home" size={24} color={color} />
+            ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: '设置',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) =>
+            Platform.OS === 'ios' ? (
+              <IconSymbol size={28} name="gearshape.fill" color={color} />
+            ) : (
+              <Ionicons name="settings" size={24} color={color} />
+            ),
         }}
       />
     </Tabs>
