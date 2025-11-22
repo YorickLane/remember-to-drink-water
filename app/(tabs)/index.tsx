@@ -4,6 +4,7 @@
 
 import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWaterStore } from '@/store/useWaterStore';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { ProgressRing } from '@/components/ProgressRing';
@@ -50,7 +51,7 @@ export default function HomeScreen() {
   const goalMl = settings?.daily_goal_ml || 2000;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -72,7 +73,7 @@ export default function HomeScreen() {
           <WaterLogList logs={todayLogs} onDelete={handleDeleteLog} />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

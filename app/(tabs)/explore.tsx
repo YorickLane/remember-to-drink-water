@@ -4,6 +4,7 @@
 
 import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWaterStore } from '@/store/useWaterStore';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
@@ -73,14 +74,15 @@ export default function SettingsScreen() {
 
   if (!settings) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
         <Text style={{ color: colors.text }}>加载中...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} contentContainerStyle={styles.content}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.content}>
       {/* 标题 */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>设置</Text>
@@ -217,7 +219,8 @@ export default function SettingsScreen() {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

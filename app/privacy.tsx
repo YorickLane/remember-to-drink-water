@@ -3,6 +3,7 @@
  */
 
 import { ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColors } from '@/hooks/useThemeColors';
@@ -11,8 +12,9 @@ export default function PrivacyPolicyScreen() {
   const { colors } = useThemeColors();
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemedView style={styles.content}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <ScrollView>
+        <ThemedView style={styles.content}>
         <ThemedText type="title" style={styles.title}>隐私政策</ThemedText>
         <ThemedText style={styles.updateDate}>最后更新：2025年11月</ThemedText>
 
@@ -104,8 +106,9 @@ export default function PrivacyPolicyScreen() {
             最后更新日期：2025年11月22日
           </ThemedText>
         </ThemedView>
-      </ThemedView>
-    </ScrollView>
+        </ThemedView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
