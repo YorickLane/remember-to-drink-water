@@ -5,6 +5,20 @@
 import * as Notifications from 'expo-notifications';
 import { AppSettings } from '@/types/models';
 
+// 扩展 Expo Notifications 类型定义
+type CalendarTriggerInput = {
+  type: Notifications.SchedulableTriggerInputTypes.CALENDAR;
+  hour: number;
+  minute: number;
+  repeats: boolean;
+};
+
+type TimeIntervalTriggerInput = {
+  type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL;
+  seconds: number;
+  repeats?: boolean;
+};
+
 // 配置通知处理方式
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -60,18 +74,20 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
     const minute = reminderMinutes % 60;
 
     // 使用 CalendarTriggerInput 确保只在指定时间触发，不会立即弹出
+    const trigger: CalendarTriggerInput = {
+      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      hour,
+      minute,
+      repeats: true,
+    };
+
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '该喝水啦 💧',
         body: '记得补充水分，保持健康！',
         sound: true,
       },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-        hour,
-        minute,
-        repeats: true,
-      } as any,
+      trigger,
     });
   }
 
@@ -91,15 +107,17 @@ export async function cancelAllReminders(): Promise<void> {
  * 发送立即通知（测试用）
  */
 export async function sendTestNotification(): Promise<void> {
+  const trigger: TimeIntervalTriggerInput = {
+    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+    seconds: 1,
+  };
+
   await Notifications.scheduleNotificationAsync({
     content: {
       title: '测试通知 💧',
       body: '通知功能正常！',
       sound: true,
     },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 1,
-    } as any,
+    trigger,
   });
 }

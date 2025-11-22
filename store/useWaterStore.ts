@@ -27,7 +27,7 @@ interface WaterStore {
   loadSettings: () => Promise<void>;
   addLog: (amount_ml: number) => Promise<void>;
   deleteLog: (id: string) => Promise<void>;
-  updateSetting: (key: keyof AppSettings, value: any) => Promise<void>;
+  updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
 }
 
 export const useWaterStore = create<WaterStore>((set, get) => ({
@@ -102,7 +102,7 @@ export const useWaterStore = create<WaterStore>((set, get) => ({
   },
 
   // 更新设置
-  updateSetting: async (key: keyof AppSettings, value: any) => {
+  updateSetting: async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     try {
       await dbUpdateSetting(key, value);
       const { settings } = get();

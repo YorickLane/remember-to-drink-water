@@ -151,9 +151,10 @@ export async function getSettings(): Promise<AppSettings> {
     'SELECT key, value FROM settings'
   );
 
-  const settings: any = {};
+  const settings: Partial<AppSettings> = {};
   rows?.forEach(row => {
-    settings[row.key] = JSON.parse(row.value);
+    const key = row.key as keyof AppSettings;
+    settings[key] = JSON.parse(row.value);
   });
 
   return settings as AppSettings;
@@ -162,7 +163,10 @@ export async function getSettings(): Promise<AppSettings> {
 /**
  * 更新设置
  */
-export async function updateSetting(key: keyof AppSettings, value: any): Promise<void> {
+export async function updateSetting<K extends keyof AppSettings>(
+  key: K,
+  value: AppSettings[K]
+): Promise<void> {
   if (!db) throw new Error('Database not initialized');
 
   await db.runAsync(

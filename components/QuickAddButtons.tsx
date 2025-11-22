@@ -22,7 +22,21 @@ const PRESET_AMOUNTS = [
   { amount: 500, label: '大杯', icon: '🍺' },
 ];
 
-function AnimatedButton({ amount, label, icon, onAdd, colors }: any) {
+interface AnimatedButtonProps {
+  amount: number;
+  label: string;
+  icon: string;
+  onAdd: (amount: number) => Promise<void>;
+  colors: {
+    primary: string;
+    quickButtonBackground: string;
+    quickButtonBorder: string;
+    quickButtonText: string;
+    textSecondary: string;
+  };
+}
+
+function AnimatedButton({ amount, label, icon, onAdd, colors }: AnimatedButtonProps) {
   const scale = useSharedValue(1);
   const [loading, setLoading] = useState(false);
 
