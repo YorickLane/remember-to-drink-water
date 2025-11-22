@@ -4,7 +4,18 @@
 
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import Animated, {
+  useAnimatedProps,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useEffect } from 'react';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 interface ProgressRingProps {
   current: number;      // 当前值（毫升）
@@ -22,9 +33,34 @@ export function ProgressRing({
   const { colors } = useThemeColors();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.min(current / goal, 1); // 限制在 0-1 之间
-  const strokeDashoffset = circumference * (1 - progress);
+  const progress = Math.min(current / goal, 1);
   const percentage = Math.round(progress * 100);
+
+  // 动画值
+  const animatedProgress = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  // 更新进度时触发动画
+  useEffect(() => {
+    animatedProgress.value = withSpring(progress, {
+      damping: 15,
+      stiffness: 100,
+    });
+
+    // 添加时的缩放动画
+    if (current > 0) {
+      scale.value = withSpring(1.1, {
+        damping: 10,
+        stiffness: 200,
+      });
+      setTimeout(() => {
+        scale.value = withSpring(1, {
+          damping: 10,
+          stiffness: 200,
+        });
+      }, 200);
+    }
+  }, [current, goal]);
 
   // 根据完成度显示不同颜色
   const getColor = () => {
@@ -34,8 +70,21 @@ export function ProgressRing({
     return colors.progressLow;
   };
 
+  // 动画进度圆环属性
+  const animatedProps = useAnimatedProps(() => {
+    const animatedStrokeDashoffset = circumference * (1 - animatedProgress.value);
+    return {
+      strokeDashoffset: animatedStrokeDashoffset,
+    };
+  });
+
+  // 容器缩放动画
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, containerStyle]}>
       <Svg width={size} height={size}>
         {/* 背景圆环 */}
         <Circle
@@ -46,8 +95,8 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
           fill="transparent"
         />
-        {/* 进度圆环 */}
-        <Circle
+        {/* 进度圆环 - 带动画 */}
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -55,9 +104,9 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          animatedProps={animatedProps}
         />
       </Svg>
 
@@ -73,7 +122,7 @@ export function ProgressRing({
           {goal - current > 0 ? `还差 ${goal - current} ml` : '目标达成！🎉'}
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

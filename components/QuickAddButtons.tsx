@@ -2,8 +2,13 @@
  * 快捷添加按钮组件
  */
 
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { useState } from 'react';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import * as Haptics from 'expo-haptics';
 
@@ -17,15 +22,27 @@ const PRESET_AMOUNTS = [
   { amount: 500, label: '大杯', icon: '🍺' },
 ];
 
-export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
-  const { colors } = useThemeColors();
+function AnimatedButton({ amount, label, icon, onAdd, colors }: any) {
+  const scale = useSharedValue(1);
   const [loading, setLoading] = useState(false);
 
-  const handleAdd = async (amount: number) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 15 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15 });
+  };
+
+  const handlePress = async () => {
     try {
       setLoading(true);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       await onAdd(amount);
-      // 触觉反馈
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('Failed to add water log:', error);
@@ -36,37 +53,56 @@ export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
   };
 
   return (
+    <Pressable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={loading}
+    >
+      <Animated.View
+        style={[
+          styles.button,
+          {
+            backgroundColor: colors.quickButtonBackground,
+            borderColor: colors.quickButtonBorder,
+          },
+          animatedStyle,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color={colors.primary} />
+        ) : (
+          <>
+            <Text style={styles.icon}>{icon}</Text>
+            <Text style={[styles.amount, { color: colors.quickButtonText }]}>
+              {amount}ml
+            </Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              {label}
+            </Text>
+          </>
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
+  const { colors } = useThemeColors();
+
+  return (
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>快速记录</Text>
       <View style={styles.buttonsRow}>
         {PRESET_AMOUNTS.map(({ amount, label, icon }) => (
-          <TouchableOpacity
+          <AnimatedButton
             key={amount}
-            style={[
-              styles.button,
-              {
-                backgroundColor: colors.quickButtonBackground,
-                borderColor: colors.quickButtonBorder,
-              },
-            ]}
-            onPress={() => handleAdd(amount)}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <>
-                <Text style={styles.icon}>{icon}</Text>
-                <Text style={[styles.amount, { color: colors.quickButtonText }]}>
-                  {amount}ml
-                </Text>
-                <Text style={[styles.label, { color: colors.textSecondary }]}>
-                  {label}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+            amount={amount}
+            label={label}
+            icon={icon}
+            onAdd={onAdd}
+            colors={colors}
+          />
         ))}
       </View>
     </View>

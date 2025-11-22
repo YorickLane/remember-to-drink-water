@@ -3,6 +3,11 @@
  */
 
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOutRight,
+  Layout,
+} from 'react-native-reanimated';
 import { WaterLog } from '@/types/models';
 import { format } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
@@ -34,11 +39,17 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
     );
   };
 
-  const renderLogItem = (item: WaterLog) => {
+  const renderLogItem = (item: WaterLog, index: number) => {
     const time = format(item.timestamp, 'HH:mm');
 
     return (
-      <View key={item.id} style={[styles.logItem, { backgroundColor: colors.logItemBackground }]}>
+      <Animated.View
+        key={item.id}
+        entering={FadeInDown.delay(index * 50).springify()}
+        exiting={FadeOutRight.duration(300)}
+        layout={Layout.springify()}
+        style={[styles.logItem, { backgroundColor: colors.logItemBackground }]}
+      >
         <View style={styles.logContent}>
           <Text style={styles.dropIcon}>💧</Text>
           <View style={styles.logInfo}>
@@ -53,7 +64,7 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
         >
           <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     );
   };
 
@@ -71,7 +82,7 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>今日记录 ({logs.length})</Text>
       <View style={styles.logsList}>
-        {logs.map(renderLogItem)}
+        {logs.map((log, index) => renderLogItem(log, index))}
       </View>
     </View>
   );
