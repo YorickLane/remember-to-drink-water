@@ -4,6 +4,7 @@
 
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import * as Haptics from 'expo-haptics';
 
 interface QuickAddButtonsProps {
@@ -17,6 +18,7 @@ const PRESET_AMOUNTS = [
 ];
 
 export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
+  const { colors } = useThemeColors();
   const [loading, setLoading] = useState(false);
 
   const handleAdd = async (amount: number) => {
@@ -35,23 +37,33 @@ export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>快速记录</Text>
+      <Text style={[styles.title, { color: colors.text }]}>快速记录</Text>
       <View style={styles.buttonsRow}>
         {PRESET_AMOUNTS.map(({ amount, label, icon }) => (
           <TouchableOpacity
             key={amount}
-            style={styles.button}
+            style={[
+              styles.button,
+              {
+                backgroundColor: colors.quickButtonBackground,
+                borderColor: colors.quickButtonBorder,
+              },
+            ]}
             onPress={() => handleAdd(amount)}
             disabled={loading}
             activeOpacity={0.7}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#2196F3" />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <>
                 <Text style={styles.icon}>{icon}</Text>
-                <Text style={styles.amount}>{amount}ml</Text>
-                <Text style={styles.label}>{label}</Text>
+                <Text style={[styles.amount, { color: colors.quickButtonText }]}>
+                  {amount}ml
+                </Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>
+                  {label}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -70,7 +82,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#333',
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -78,7 +89,6 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#E3F2FD',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 8,
@@ -87,7 +97,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 100,
     borderWidth: 2,
-    borderColor: '#90CAF9',
   },
   icon: {
     fontSize: 32,
@@ -96,12 +105,10 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1976D2',
     marginTop: 4,
   },
   label: {
     fontSize: 12,
-    color: '#666',
     marginTop: 2,
   },
 });
