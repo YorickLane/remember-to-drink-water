@@ -1,39 +1,56 @@
 /**
  * 通知调度管理
+ * Web 平台禁用通知功能（浏览器通知需要额外实现）
  */
 
-import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { AppSettings } from '@/types/models';
+
+// 条件导入：仅在非 Web 平台导入 expo-notifications
+let Notifications: typeof import('expo-notifications') | null = null;
+
+if (Platform.OS !== 'web') {
+  Notifications = require('expo-notifications');
+}
 
 // 扩展 Expo Notifications 类型定义
 type CalendarTriggerInput = {
-  type: Notifications.SchedulableTriggerInputTypes.CALENDAR;
+  type: any;
   hour: number;
   minute: number;
   repeats: boolean;
 };
 
 type TimeIntervalTriggerInput = {
-  type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL;
+  type: any;
   seconds: number;
   repeats?: boolean;
 };
 
-// 配置通知处理方式
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// 配置通知处理方式（仅移动端）
+if (Notifications) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 /**
  * 请求通知权限
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
+  // Web 平台暂不支持
+  if (Platform.OS === 'web') {
+    return false;
+  }
+
+  if (!Notifications) return false;
+
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
@@ -49,6 +66,11 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  * 调度提醒通知
  */
 export async function scheduleReminders(settings: AppSettings): Promise<void> {
+  // Web 平台暂不支持
+  if (Platform.OS === 'web' || !Notifications) {
+    return;
+  }
+
   if (!settings.reminder_enabled) {
     await cancelAllReminders();
     return;
@@ -75,13 +97,13 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
 
     // 使用 CalendarTriggerInput 确保只在指定时间触发，不会立即弹出
     const trigger: CalendarTriggerInput = {
-      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      type: Notifications!.SchedulableTriggerInputTypes.CALENDAR,
       hour,
       minute,
       repeats: true,
     };
 
-    await Notifications.scheduleNotificationAsync({
+    await Notifications!.scheduleNotificationAsync({
       content: {
         title: '该喝水啦 💧',
         body: '记得补充水分，保持健康！',
@@ -100,6 +122,9 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
  * 取消所有提醒
  */
 export async function cancelAllReminders(): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) {
+    return;
+  }
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
@@ -107,12 +132,25 @@ export async function cancelAllReminders(): Promise<void> {
  * 发送立即通知（测试用）
  */
 export async function sendTestNotification(): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) {
+    // Web 平台使用浏览器通知（可选）
+    if (Platform.OS === 'web' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification('测试通知 💧', {
+          body: '通知功能正常！',
+          icon: '/favicon.png',
+        });
+      }
+    }
+    return;
+  }
+
   const trigger: TimeIntervalTriggerInput = {
-    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+    type: Notifications!.SchedulableTriggerInputTypes.TIME_INTERVAL,
     seconds: 1,
   };
 
-  await Notifications.scheduleNotificationAsync({
+  await Notifications!.scheduleNotificationAsync({
     content: {
       title: '测试通知 💧',
       body: '通知功能正常！',
