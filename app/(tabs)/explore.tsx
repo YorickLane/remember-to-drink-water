@@ -1,112 +1,337 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+/**
+ * 设置页面
+ */
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { useWaterStore } from '@/store/useWaterStore';
+import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
+import * as Haptics from 'expo-haptics';
 
-export default function TabTwoScreen() {
+export default function SettingsScreen() {
+  const { settings, loadSettings, updateSetting } = useWaterStore();
+  const [permissionGranted, setPermissionGranted] = useState(false);
+
+  useEffect(() => {
+    loadSettings();
+    checkPermissions();
+  }, []);
+
+  const checkPermissions = async () => {
+    const granted = await requestNotificationPermissions();
+    setPermissionGranted(granted);
+  };
+
+  const handleGoalChange = (increment: number) => {
+    if (!settings) return;
+    const newGoal = Math.max(500, Math.min(5000, settings.daily_goal_ml + increment));
+    updateSetting('daily_goal_ml', newGoal);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleReminderToggle = async (value: boolean) => {
+    if (value && !permissionGranted) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert(
+          '需要通知权限',
+          '请在系统设置中允许通知权限，以便接收饮水提醒。',
+          [{ text: '知道了' }]
+        );
+        return;
+      }
+      setPermissionGranted(true);
+    }
+    await updateSetting('reminder_enabled', value);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleIntervalChange = (increment: number) => {
+    if (!settings) return;
+    const newInterval = Math.max(30, Math.min(240, settings.reminder_interval_min + increment));
+    updateSetting('reminder_interval_min', newInterval);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleTestNotification = async () => {
+    if (!permissionGranted) {
+      Alert.alert('提示', '请先开启提醒功能');
+      return;
+    }
+
+    try {
+      await sendTestNotification();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('成功', '测试通知已发送！请查看通知栏。');
+    } catch (error) {
+      Alert.alert('错误', '发送测试通知失败');
+    }
+  };
+
+  if (!settings) {
+    return (
+      <View style={styles.container}>
+        <Text>加载中...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* 标题 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>设置</Text>
+      </View>
+
+      {/* 每日目标 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>每日目标</Text>
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>目标水量</Text>
+          <View style={styles.counterContainer}>
+            <TouchableOpacity
+              style={styles.counterButton}
+              onPress={() => handleGoalChange(-100)}
+            >
+              <Text style={styles.counterButtonText}>−</Text>
+            </TouchableOpacity>
+            <Text style={styles.counterValue}>{settings.daily_goal_ml} ml</Text>
+            <TouchableOpacity
+              style={styles.counterButton}
+              onPress={() => handleGoalChange(100)}
+            >
+              <Text style={styles.counterButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={styles.hint}>范围：500ml - 5000ml</Text>
+      </View>
+
+      {/* 提醒设置 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>提醒设置</Text>
+
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingLabel}>启用提醒</Text>
+            <Text style={styles.settingDescription}>
+              定时提醒你补充水分
+            </Text>
+          </View>
+          <Switch
+            value={settings.reminder_enabled}
+            onValueChange={handleReminderToggle}
+            trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+            thumbColor="#fff"
+          />
+        </View>
+
+        {settings.reminder_enabled && (
+          <>
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>提醒时间段</Text>
+                <Text style={styles.settingDescription}>
+                  {settings.reminder_start} - {settings.reminder_end}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.settingRow}>
+              <Text style={styles.settingLabel}>提醒间隔</Text>
+              <View style={styles.counterContainer}>
+                <TouchableOpacity
+                  style={styles.counterButton}
+                  onPress={() => handleIntervalChange(-30)}
+                >
+                  <Text style={styles.counterButtonText}>−</Text>
+                </TouchableOpacity>
+                <Text style={styles.counterValue}>{settings.reminder_interval_min} 分钟</Text>
+                <TouchableOpacity
+                  style={styles.counterButton}
+                  onPress={() => handleIntervalChange(30)}
+                >
+                  <Text style={styles.counterButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Text style={styles.hint}>范围：30 - 240 分钟</Text>
+
+            <TouchableOpacity
+              style={styles.testButton}
+              onPress={handleTestNotification}
+            >
+              <Text style={styles.testButtonText}>📬 发送测试通知</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+
+      {/* 关于 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>关于</Text>
+        <View style={styles.aboutContainer}>
+          <Text style={styles.aboutText}>💧 喝水提醒</Text>
+          <Text style={styles.aboutVersion}>版本 1.0.0</Text>
+          <Text style={styles.aboutDescription}>
+            帮助你养成健康的饮水习惯，{'\n'}
+            数据仅保存在本地，安全可靠。
+          </Text>
+        </View>
+      </View>
+
+      {/* 提示信息 */}
+      {!permissionGranted && settings.reminder_enabled && (
+        <View style={styles.warningBox}>
+          <Text style={styles.warningText}>
+            ⚠️ 通知权限未授予，请在系统设置中开启
+          </Text>
+        </View>
+      )}
+
+      {Platform.OS === 'ios' && (
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            💡 iOS 模拟器不支持通知，请在真机上测试
+          </Text>
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
-  titleContainer: {
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  section: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 16,
+  },
+  settingRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  counterButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  counterButtonText: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  counterValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    minWidth: 100,
+    textAlign: 'center',
+  },
+  hint: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 4,
+  },
+  testButton: {
+    backgroundColor: '#34C759',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  testButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  aboutContainer: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  aboutText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  aboutVersion: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 12,
+  },
+  aboutDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  warningBox: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
+  },
+  infoBox: {
+    backgroundColor: '#D1ECF1',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#0C5460',
+    textAlign: 'center',
   },
 });
