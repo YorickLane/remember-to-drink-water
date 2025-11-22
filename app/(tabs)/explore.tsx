@@ -5,11 +5,13 @@
 import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useWaterStore } from '@/store/useWaterStore';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
 import { TimePicker } from '@/components/TimePicker';
 import * as Haptics from 'expo-haptics';
 
 export default function SettingsScreen() {
+  const { colors } = useThemeColors();
   const { settings, loadSettings, updateSetting } = useWaterStore();
   const [permissionGranted, setPermissionGranted] = useState(false);
 
@@ -71,59 +73,59 @@ export default function SettingsScreen() {
 
   if (!settings) {
     return (
-      <View style={styles.container}>
-        <Text>加载中...</Text>
+      <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+        <Text style={{ color: colors.text }}>加载中...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} contentContainerStyle={styles.content}>
       {/* 标题 */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>设置</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>设置</Text>
       </View>
 
       {/* 每日目标 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>每日目标</Text>
+      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>每日目标</Text>
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>目标水量</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>目标水量</Text>
           <View style={styles.counterContainer}>
             <TouchableOpacity
-              style={styles.counterButton}
+              style={[styles.counterButton, { backgroundColor: colors.primary }]}
               onPress={() => handleGoalChange(-100)}
             >
               <Text style={styles.counterButtonText}>−</Text>
             </TouchableOpacity>
-            <Text style={styles.counterValue}>{settings.daily_goal_ml} ml</Text>
+            <Text style={[styles.counterValue, { color: colors.text }]}>{settings.daily_goal_ml} ml</Text>
             <TouchableOpacity
-              style={styles.counterButton}
+              style={[styles.counterButton, { backgroundColor: colors.primary }]}
               onPress={() => handleGoalChange(100)}
             >
               <Text style={styles.counterButtonText}>+</Text>
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.hint}>范围：500ml - 5000ml</Text>
+        <Text style={[styles.hint, { color: colors.textTertiary }]}>范围：500ml - 5000ml</Text>
       </View>
 
       {/* 提醒设置 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>提醒设置</Text>
+      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>提醒设置</Text>
 
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>启用提醒</Text>
-            <Text style={styles.settingDescription}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>启用提醒</Text>
+            <Text style={[styles.settingDescription, { color: colors.textTertiary }]}>
               定时提醒你补充水分
             </Text>
           </View>
           <Switch
             value={settings.reminder_enabled}
             onValueChange={handleReminderToggle}
-            trackColor={{ false: '#D1D1D6', true: '#34C759' }}
-            thumbColor="#fff"
+            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
+            thumbColor={colors.switchThumb}
           />
         </View>
 
@@ -144,27 +146,27 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>提醒间隔</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>提醒间隔</Text>
               <View style={styles.counterContainer}>
                 <TouchableOpacity
-                  style={styles.counterButton}
+                  style={[styles.counterButton, { backgroundColor: colors.primary }]}
                   onPress={() => handleIntervalChange(-30)}
                 >
                   <Text style={styles.counterButtonText}>−</Text>
                 </TouchableOpacity>
-                <Text style={styles.counterValue}>{settings.reminder_interval_min} 分钟</Text>
+                <Text style={[styles.counterValue, { color: colors.text }]}>{settings.reminder_interval_min} 分钟</Text>
                 <TouchableOpacity
-                  style={styles.counterButton}
+                  style={[styles.counterButton, { backgroundColor: colors.primary }]}
                   onPress={() => handleIntervalChange(30)}
                 >
                   <Text style={styles.counterButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
             </View>
-            <Text style={styles.hint}>范围：30 - 240 分钟</Text>
+            <Text style={[styles.hint, { color: colors.textTertiary }]}>范围：30 - 240 分钟</Text>
 
             <TouchableOpacity
-              style={styles.testButton}
+              style={[styles.testButton, { backgroundColor: colors.success }]}
               onPress={handleTestNotification}
             >
               <Text style={styles.testButtonText}>📬 发送测试通知</Text>
@@ -174,12 +176,12 @@ export default function SettingsScreen() {
       </View>
 
       {/* 关于 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>关于</Text>
+      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>关于</Text>
         <View style={styles.aboutContainer}>
-          <Text style={styles.aboutText}>💧 喝水提醒</Text>
-          <Text style={styles.aboutVersion}>版本 1.0.0</Text>
-          <Text style={styles.aboutDescription}>
+          <Text style={[styles.aboutText, { color: colors.text }]}>💧 喝水提醒</Text>
+          <Text style={[styles.aboutVersion, { color: colors.textTertiary }]}>版本 1.0.0</Text>
+          <Text style={[styles.aboutDescription, { color: colors.textSecondary }]}>
             帮助你养成健康的饮水习惯，{'\n'}
             数据仅保存在本地，安全可靠。
           </Text>
@@ -188,16 +190,16 @@ export default function SettingsScreen() {
 
       {/* 提示信息 */}
       {!permissionGranted && settings.reminder_enabled && (
-        <View style={styles.warningBox}>
-          <Text style={styles.warningText}>
+        <View style={[styles.warningBox, { backgroundColor: colors.warningBackground }]}>
+          <Text style={[styles.warningText, { color: colors.warningText }]}>
             ⚠️ 通知权限未授予，请在系统设置中开启
           </Text>
         </View>
       )}
 
       {Platform.OS === 'ios' && (
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoBox, { backgroundColor: colors.infoBackground }]}>
+          <Text style={[styles.infoText, { color: colors.infoText }]}>
             💡 iOS 模拟器不支持通知，请在真机上测试
           </Text>
         </View>
@@ -209,7 +211,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   content: {
     padding: 20,
@@ -221,10 +222,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000',
   },
   section: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -232,7 +231,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 16,
   },
   settingRow: {
@@ -248,12 +246,10 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000',
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
-    color: '#8E8E93',
   },
   counterContainer: {
     flexDirection: 'row',
@@ -264,7 +260,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -276,17 +271,14 @@ const styles = StyleSheet.create({
   counterValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
     minWidth: 100,
     textAlign: 'center',
   },
   hint: {
     fontSize: 12,
-    color: '#8E8E93',
     marginTop: 4,
   },
   testButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -304,40 +296,33 @@ const styles = StyleSheet.create({
   aboutText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 4,
   },
   aboutVersion: {
     fontSize: 14,
-    color: '#8E8E93',
     marginBottom: 12,
   },
   aboutDescription: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },
   warningBox: {
-    backgroundColor: '#FFF3CD',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   warningText: {
     fontSize: 14,
-    color: '#856404',
     textAlign: 'center',
   },
   infoBox: {
-    backgroundColor: '#D1ECF1',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   infoText: {
     fontSize: 14,
-    color: '#0C5460',
     textAlign: 'center',
   },
   timePickerSection: {

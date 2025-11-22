@@ -5,6 +5,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
 import { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import * as Haptics from 'expo-haptics';
 
 interface TimePickerProps {
@@ -14,6 +15,7 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ label, value, onChange }: TimePickerProps) {
+  const { colors, isDark } = useThemeColors();
   const [showPicker, setShowPicker] = useState(false);
   const [tempDate, setTempDate] = useState(() => {
     const [hours, minutes] = value.split(':').map(Number);
@@ -58,17 +60,17 @@ export function TimePicker({ label, value, onChange }: TimePickerProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, { backgroundColor: colors.logItemBackground }]}
         onPress={() => {
           setShowPicker(true);
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }}
       >
         <View style={styles.buttonContent}>
-          <Text style={styles.label}>{label}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{value}</Text>
-            <Text style={styles.arrow}>›</Text>
+            <Text style={[styles.timeText, { color: colors.primary }]}>{value}</Text>
+            <Text style={[styles.arrow, { color: colors.textDisabled }]}>›</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -86,14 +88,14 @@ export function TimePicker({ label, value, onChange }: TimePickerProps) {
             activeOpacity={1}
             onPress={handleCancel}
           >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
+            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={handleCancel}>
-                  <Text style={styles.cancelButton}>取消</Text>
+                  <Text style={[styles.cancelButton, { color: colors.primary }]}>取消</Text>
                 </TouchableOpacity>
-                <Text style={styles.modalTitle}>{label}</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>{label}</Text>
                 <TouchableOpacity onPress={handleConfirm}>
-                  <Text style={styles.confirmButton}>确定</Text>
+                  <Text style={[styles.confirmButton, { color: colors.primary }]}>确定</Text>
                 </TouchableOpacity>
               </View>
 
@@ -103,7 +105,8 @@ export function TimePicker({ label, value, onChange }: TimePickerProps) {
                 display="spinner"
                 onChange={handleTimeChange}
                 locale="zh-CN"
-                textColor="#000"
+                textColor={isDark ? '#FFFFFF' : '#000000'}
+                themeVariant={isDark ? 'dark' : 'light'}
               />
             </View>
           </TouchableOpacity>
@@ -129,7 +132,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   button: {
-    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -142,7 +144,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000',
   },
   timeContainer: {
     flexDirection: 'row',
@@ -152,11 +153,9 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
   },
   arrow: {
     fontSize: 20,
-    color: '#C7C7CC',
   },
   modalOverlay: {
     flex: 1,
@@ -164,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
@@ -175,20 +173,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
   },
   modalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#000',
   },
   cancelButton: {
     fontSize: 17,
-    color: '#007AFF',
   },
   confirmButton: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#007AFF',
   },
 });

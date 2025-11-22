@@ -5,11 +5,13 @@
 import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useWaterStore } from '@/store/useWaterStore';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { ProgressRing } from '@/components/ProgressRing';
 import { QuickAddButtons } from '@/components/QuickAddButtons';
 import { WaterLogList } from '@/components/WaterLogList';
 
 export default function HomeScreen() {
+  const { colors } = useThemeColors();
   const {
     todayLogs,
     todayTotal,
@@ -48,7 +50,7 @@ export default function HomeScreen() {
   const goalMl = settings?.daily_goal_ml || 2000;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -58,7 +60,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* 进度环形图 */}
-        <View style={styles.progressSection}>
+        <View style={[styles.progressSection, { backgroundColor: colors.secondaryBackground }]}>
           <ProgressRing current={todayTotal} goal={goalMl} size={220} />
         </View>
 
@@ -77,7 +79,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollView: {
     flex: 1,
@@ -88,7 +89,6 @@ const styles = StyleSheet.create({
   progressSection: {
     alignItems: 'center',
     paddingVertical: 40,
-    backgroundColor: '#F8FBFF',
   },
   logsSection: {
     flex: 1,
