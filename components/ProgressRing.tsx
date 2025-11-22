@@ -4,6 +4,7 @@
 
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 interface ProgressRingProps {
   current: number;      // 当前值（毫升）
@@ -18,6 +19,7 @@ export function ProgressRing({
   size = 200,
   strokeWidth = 20,
 }: ProgressRingProps) {
+  const { colors } = useThemeColors();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(current / goal, 1); // 限制在 0-1 之间
@@ -26,10 +28,10 @@ export function ProgressRing({
 
   // 根据完成度显示不同颜色
   const getColor = () => {
-    if (percentage >= 100) return '#4CAF50'; // 绿色 - 已完成
-    if (percentage >= 75) return '#2196F3';  // 蓝色 - 接近完成
-    if (percentage >= 50) return '#FF9800';  // 橙色 - 进行中
-    return '#9E9E9E';                         // 灰色 - 刚开始
+    if (percentage >= 100) return colors.progressComplete;
+    if (percentage >= 75) return colors.progressHigh;
+    if (percentage >= 50) return colors.progressMedium;
+    return colors.progressLow;
   };
 
   return (
@@ -40,7 +42,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#E0E0E0"
+          stroke={colors.progressBackground}
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -64,10 +66,10 @@ export function ProgressRing({
         <Text style={[styles.percentage, { color: getColor() }]}>
           {percentage}%
         </Text>
-        <Text style={styles.amount}>
+        <Text style={[styles.amount, { color: colors.textSecondary }]}>
           {current} / {goal} ml
         </Text>
-        <Text style={styles.remaining}>
+        <Text style={[styles.remaining, { color: colors.textTertiary }]}>
           {goal - current > 0 ? `还差 ${goal - current} ml` : '目标达成！🎉'}
         </Text>
       </View>
@@ -91,12 +93,10 @@ const styles = StyleSheet.create({
   },
   amount: {
     fontSize: 16,
-    color: '#666',
     marginTop: 4,
   },
   remaining: {
     fontSize: 14,
-    color: '#999',
     marginTop: 2,
   },
 });
