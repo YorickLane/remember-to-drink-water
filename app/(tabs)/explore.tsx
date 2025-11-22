@@ -6,6 +6,7 @@ import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Pl
 import { useEffect, useState } from 'react';
 import { useWaterStore } from '@/store/useWaterStore';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
+import { TimePicker } from '@/components/TimePicker';
 import * as Haptics from 'expo-haptics';
 
 export default function SettingsScreen() {
@@ -128,13 +129,18 @@ export default function SettingsScreen() {
 
         {settings.reminder_enabled && (
           <>
-            <View style={styles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>提醒时间段</Text>
-                <Text style={styles.settingDescription}>
-                  {settings.reminder_start} - {settings.reminder_end}
-                </Text>
-              </View>
+            <View style={styles.timePickerSection}>
+              <TimePicker
+                label="开始时间"
+                value={settings.reminder_start}
+                onChange={(time) => updateSetting('reminder_start', time)}
+              />
+              <View style={styles.timePickerSpacer} />
+              <TimePicker
+                label="结束时间"
+                value={settings.reminder_end}
+                onChange={(time) => updateSetting('reminder_end', time)}
+              />
             </View>
 
             <View style={styles.settingRow}>
@@ -333,5 +339,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0C5460',
     textAlign: 'center',
+  },
+  timePickerSection: {
+    marginTop: 8,
+    gap: 12,
+  },
+  timePickerSpacer: {
+    height: 8,
   },
 });
