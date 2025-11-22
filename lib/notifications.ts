@@ -11,6 +11,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -73,7 +75,9 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
     });
   }
 
-  console.log(`Scheduled ${reminderCount} daily reminders from ${settings.reminder_start} to ${settings.reminder_end}`);
+  if (__DEV__) {
+    console.log(`Scheduled ${reminderCount} daily reminders from ${settings.reminder_start} to ${settings.reminder_end}`);
+  }
 }
 
 /**
@@ -94,7 +98,8 @@ export async function sendTestNotification(): Promise<void> {
       sound: true,
     },
     trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds: 1,
-    },
+    } as any,
   });
 }

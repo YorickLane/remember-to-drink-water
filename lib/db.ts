@@ -41,7 +41,9 @@ export async function initDatabase(): Promise<void> {
     // 初始化默认设置
     await initDefaultSettings();
 
-    console.log('Database initialized successfully');
+    if (__DEV__) {
+      console.log('Database initialized successfully');
+    }
   } catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;

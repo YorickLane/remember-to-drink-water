@@ -21,7 +21,9 @@ export default function RootLayout() {
       try {
         // 初始化数据库
         await initDatabase();
-        console.log('App initialized successfully');
+        if (__DEV__) {
+          console.log('App initialized successfully');
+        }
       } catch (error) {
         console.error('Failed to initialize app:', error);
       } finally {
