@@ -186,6 +186,19 @@ export default function SettingsScreen() {
             数据仅保存在本地，安全可靠。
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
+          onPress={() => {
+            // 导航到隐私政策页面
+            require('expo-router').router.push('/privacy');
+          }}
+        >
+          <Text style={[styles.linkButtonText, { color: colors.primary }]}>
+            隐私政策
+          </Text>
+          <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 提示信息 */}
@@ -331,5 +344,20 @@ const styles = StyleSheet.create({
   },
   timePickerSpacer: {
     height: 8,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  linkButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  linkArrow: {
+    fontSize: 20,
   },
 });
