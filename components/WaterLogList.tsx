@@ -2,7 +2,7 @@
  * 饮水记录列表组件
  */
 
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { WaterLog } from '@/types/models';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -31,11 +31,11 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
     );
   };
 
-  const renderItem = ({ item }: { item: WaterLog }) => {
+  const renderLogItem = (item: WaterLog) => {
     const time = format(item.timestamp, 'HH:mm');
 
     return (
-      <View style={styles.logItem}>
+      <View key={item.id} style={styles.logItem}>
         <View style={styles.logContent}>
           <Text style={styles.dropIcon}>💧</Text>
           <View style={styles.logInfo}>
@@ -67,21 +67,15 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>今日记录 ({logs.length})</Text>
-      <FlatList
-        data={logs}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.logsList}>
+        {logs.map(renderLogItem)}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     paddingHorizontal: 20,
   },
   title: {
@@ -90,11 +84,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#333',
   },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingBottom: 20,
+  logsList: {
+    gap: 8,
   },
   logItem: {
     flexDirection: 'row',
