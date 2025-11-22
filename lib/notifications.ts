@@ -57,6 +57,7 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
     const hour = Math.floor(reminderMinutes / 60);
     const minute = reminderMinutes % 60;
 
+    // 使用 CalendarTriggerInput 确保只在指定时间触发，不会立即弹出
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '该喝水啦 💧',
@@ -64,14 +65,15 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
         sound: true,
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
         hour,
         minute,
         repeats: true,
-      },
+      } as any,
     });
   }
 
-  console.log(`Scheduled ${reminderCount} daily reminders`);
+  console.log(`Scheduled ${reminderCount} daily reminders from ${settings.reminder_start} to ${settings.reminder_end}`);
 }
 
 /**
