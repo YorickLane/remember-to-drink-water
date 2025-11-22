@@ -12,7 +12,7 @@ export default function PrivacyPolicyScreen() {
   const { colors } = useThemeColors();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right']}>
       <ScrollView>
         <ThemedView style={styles.content}>
         <ThemedText type="title" style={styles.title}>隐私政策</ThemedText>
