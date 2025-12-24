@@ -1,0 +1,43 @@
+{
+  "title": "Settings",
+  "goal": {
+    "title": "Daily Goal",
+    "label": "Target Amount",
+    "hint": "Range: 500ml - 5000ml"
+  },
+  "reminder": {
+    "title": "Reminders",
+    "enable": {
+      "label": "Enable Reminders",
+      "hint": "Get notified to drink water regularly"
+    },
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "interval": {
+      "label": "Reminder Interval",
+      "hint": "Range: 30 - 240 minutes"
+    },
+    "test_button": "Send Test Notification",
+    "test_success": "Test notification sent! Check your notification center.",
+    "test_error": "Failed to send test notification",
+    "permission_required_title": "Permission Required",
+    "permission_required_message": "Please allow notification permission in system settings to receive water reminders.",
+    "permission_tip": "Please enable reminders first",
+    "permission_warning": "Notification permission not granted. Please enable in system settings."
+  },
+  "language": {
+    "title": "Language",
+    "label": "App Language",
+    "system": "System Default",
+    "zh": "简体中文",
+    "en": "English"
+  },
+  "about": {
+    "title": "About",
+    "app_name": "Water Reminder",
+    "version": "Version {{version}}",
+    "description": "Build healthy hydration habits.\nAll data is stored locally and secure.",
+    "privacy_policy": "Privacy Policy"
+  },
+  "ios_simulator_hint": "iOS simulator doesn't support notifications. Please test on a real device."
+}

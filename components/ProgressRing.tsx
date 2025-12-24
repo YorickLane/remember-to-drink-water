@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { useEffect } from 'react';
 
@@ -31,6 +32,7 @@ export function ProgressRing({
   strokeWidth = 20,
 }: ProgressRingProps) {
   const { colors } = useThemeColors();
+  const { t } = useTranslation();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(current / goal, 1);
@@ -119,7 +121,9 @@ export function ProgressRing({
           {current} / {goal} ml
         </Text>
         <Text style={[styles.remaining, { color: colors.textTertiary }]}>
-          {goal - current > 0 ? `还差 ${goal - current} ml` : '目标达成！🎉'}
+          {goal - current > 0
+            ? t('home.progress.remaining', { amount: goal - current })
+            : `${t('home.progress.completed')} 🎉`}
         </Text>
       </View>
     </Animated.View>

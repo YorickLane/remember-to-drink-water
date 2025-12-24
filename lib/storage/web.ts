@@ -5,6 +5,7 @@
 import { WaterLog, AppSettings } from '@/types/models';
 import { format } from 'date-fns';
 import { IStorageAdapter } from './types';
+import { generateUUID } from '@/utils/uuid';
 
 const DB_NAME = 'WaterReminderDB';
 const DB_VERSION = 1;
@@ -55,6 +56,7 @@ export class WebStorageAdapter implements IStorageAdapter {
         reminder_end: '22:00',
         reminder_interval_min: 120,
         unit: 'ml',
+        language: 'system',
       };
 
       for (const [key, value] of Object.entries(defaultSettings)) {
@@ -68,7 +70,7 @@ export class WebStorageAdapter implements IStorageAdapter {
 
     const now = Date.now();
     const log: WaterLog = {
-      id: this.generateUUID(),
+      id: generateUUID(),
       amount_ml,
       timestamp: now,
       date_key: format(now, 'yyyy-MM-dd'),
@@ -161,11 +163,4 @@ export class WebStorageAdapter implements IStorageAdapter {
     });
   }
 
-  private generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
 }

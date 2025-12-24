@@ -1,0 +1,43 @@
+{
+  "title": "Privacy Policy",
+  "last_updated": "Last Updated: {{date}}",
+  "intro": "Thank you for using Water Reminder. We take your privacy seriously. This privacy policy explains how we handle your personal information.",
+  "sections": {
+    "collection": {
+      "title": "Information Collection",
+      "content": "This app does not collect or upload any personal information. All data (including water intake records and settings) is stored only on your device."
+    },
+    "storage": {
+      "title": "Local Data Storage",
+      "content": "The app uses your device's local database to store water intake records and app settings. This data is stored only on your device and is never uploaded to any server."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "notification": "Notification Permission: Used to send water reminders to help you maintain regular hydration habits. This permission is optional and can be disabled in system settings at any time."
+    },
+    "security": {
+      "title": "Data Security",
+      "content": "Since all data is stored locally on your device, data security depends on your device's security measures. We recommend keeping your device's operating system updated and using screen lock to protect your privacy."
+    },
+    "third_party": {
+      "title": "Third-Party Services",
+      "content": "This app does not use any third-party analytics, advertising, or tracking services."
+    },
+    "children": {
+      "title": "Children's Privacy",
+      "content": "This app does not collect any personal information from children under 13 years of age."
+    },
+    "changes": {
+      "title": "Policy Changes",
+      "content": "If our privacy policy changes, we will update this page within the app. We recommend checking this policy periodically."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "If you have any questions about this privacy policy, please contact us at:\n\nGitHub Issues: https://github.com/fengxiu/remember-to-drink-water/issues"
+    },
+    "health": {
+      "title": "Health Disclaimer",
+      "content": "This app is intended only as an aid for developing hydration habits and does not provide medical advice. Daily water intake varies by individual and is affected by factors such as age, weight, activity level, and climate. Please consult a healthcare professional for health-related concerns."
+    }
+  }
+}

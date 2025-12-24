@@ -5,25 +5,38 @@
 import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useWaterStore } from '@/store/useWaterStore';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
 import { TimePicker } from '@/components/TimePicker';
+import { changeLanguage, getCurrentLanguageSetting } from '@/locales';
 import * as Haptics from 'expo-haptics';
+
+type LanguageOption = 'system' | 'en' | 'zh';
 
 export default function SettingsScreen() {
   const { colors } = useThemeColors();
+  const { t, i18n } = useTranslation();
   const { settings, loadSettings, updateSetting } = useWaterStore();
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageOption>('system');
 
   useEffect(() => {
     loadSettings();
     checkPermissions();
+    loadLanguageSetting();
   }, []);
 
   const checkPermissions = async () => {
     const granted = await requestNotificationPermissions();
     setPermissionGranted(granted);
+  };
+
+  const loadLanguageSetting = async () => {
+    const lang = await getCurrentLanguageSetting();
+    setCurrentLanguage(lang);
   };
 
   const handleGoalChange = (increment: number) => {
@@ -38,9 +51,9 @@ export default function SettingsScreen() {
       const granted = await requestNotificationPermissions();
       if (!granted) {
         Alert.alert(
-          '需要通知权限',
-          '请在系统设置中允许通知权限，以便接收饮水提醒。',
-          [{ text: '知道了' }]
+          t('settings.reminder.permission_required_title'),
+          t('settings.reminder.permission_required_message'),
+          [{ text: t('common.got_it') }]
         );
         return;
       }
@@ -59,23 +72,61 @@ export default function SettingsScreen() {
 
   const handleTestNotification = async () => {
     if (!permissionGranted) {
-      Alert.alert('提示', '请先开启提醒功能');
+      Alert.alert(t('common.error'), t('settings.reminder.permission_tip'));
       return;
     }
 
     try {
       await sendTestNotification();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('成功', '测试通知已发送！请查看通知栏。');
+      Alert.alert(t('common.success'), t('settings.reminder.test_success'));
     } catch (error) {
-      Alert.alert('错误', '发送测试通知失败');
+      Alert.alert(t('common.error'), t('settings.reminder.test_error'));
+    }
+  };
+
+  const handleLanguageChange = async (lang: LanguageOption) => {
+    await changeLanguage(lang);
+    setCurrentLanguage(lang);
+    await updateSetting('language', lang);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const showLanguagePicker = () => {
+    const options: { label: string; value: LanguageOption }[] = [
+      { label: t('settings.language.system'), value: 'system' },
+      { label: t('settings.language.zh'), value: 'zh' },
+      { label: t('settings.language.en'), value: 'en' },
+    ];
+
+    Alert.alert(
+      t('settings.language.label'),
+      undefined,
+      [
+        ...options.map((option) => ({
+          text: option.value === currentLanguage ? `✓ ${option.label}` : option.label,
+          onPress: () => handleLanguageChange(option.value),
+        })),
+        { text: t('common.cancel'), style: 'cancel' },
+      ]
+    );
+  };
+
+  const getLanguageLabel = (lang: LanguageOption): string => {
+    switch (lang) {
+      case 'system':
+        return t('settings.language.system');
+      case 'zh':
+        return t('settings.language.zh');
+      case 'en':
+        return t('settings.language.en');
     }
   };
 
   if (!settings) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
-        <Text style={{ color: colors.text }}>加载中...</Text>
+        <Text style={{ color: colors.text }}>{t('common.loading')}</Text>
       </SafeAreaView>
     );
   }
@@ -85,14 +136,14 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
       {/* 标题 */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>设置</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settings.title')}</Text>
       </View>
 
       {/* 每日目标 */}
       <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>每日目标</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.goal.title')}</Text>
         <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>目标水量</Text>
+          <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.goal.label')}</Text>
           <View style={styles.counterContainer}>
             <TouchableOpacity
               style={[styles.counterButton, { backgroundColor: colors.primary }]}
@@ -109,18 +160,18 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={[styles.hint, { color: colors.textTertiary }]}>范围：500ml - 5000ml</Text>
+        <Text style={[styles.hint, { color: colors.textTertiary }]}>{t('settings.goal.hint')}</Text>
       </View>
 
       {/* 提醒设置 */}
       <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>提醒设置</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.reminder.title')}</Text>
 
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>启用提醒</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.reminder.enable.label')}</Text>
             <Text style={[styles.settingDescription, { color: colors.textTertiary }]}>
-              定时提醒你补充水分
+              {t('settings.reminder.enable.hint')}
             </Text>
           </View>
           <Switch
@@ -135,20 +186,20 @@ export default function SettingsScreen() {
           <>
             <View style={styles.timePickerSection}>
               <TimePicker
-                label="开始时间"
+                label={t('settings.reminder.start_time')}
                 value={settings.reminder_start}
                 onChange={(time) => updateSetting('reminder_start', time)}
               />
               <View style={styles.timePickerSpacer} />
               <TimePicker
-                label="结束时间"
+                label={t('settings.reminder.end_time')}
                 value={settings.reminder_end}
                 onChange={(time) => updateSetting('reminder_end', time)}
               />
             </View>
 
             <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>提醒间隔</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.reminder.interval.label')}</Text>
               <View style={styles.counterContainer}>
                 <TouchableOpacity
                   style={[styles.counterButton, { backgroundColor: colors.primary }]}
@@ -156,7 +207,9 @@ export default function SettingsScreen() {
                 >
                   <Text style={styles.counterButtonText}>−</Text>
                 </TouchableOpacity>
-                <Text style={[styles.counterValue, { color: colors.text }]}>{settings.reminder_interval_min} 分钟</Text>
+                <Text style={[styles.counterValue, { color: colors.text }]}>
+                  {settings.reminder_interval_min} {i18n.language === 'zh' ? '分钟' : 'min'}
+                </Text>
                 <TouchableOpacity
                   style={[styles.counterButton, { backgroundColor: colors.primary }]}
                   onPress={() => handleIntervalChange(30)}
@@ -165,39 +218,56 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            <Text style={[styles.hint, { color: colors.textTertiary }]}>范围：30 - 240 分钟</Text>
+            <Text style={[styles.hint, { color: colors.textTertiary }]}>{t('settings.reminder.interval.hint')}</Text>
 
             <TouchableOpacity
               style={[styles.testButton, { backgroundColor: colors.success }]}
               onPress={handleTestNotification}
             >
-              <Text style={styles.testButtonText}>📬 发送测试通知</Text>
+              <Text style={styles.testButtonText}>📬 {t('settings.reminder.test_button')}</Text>
             </TouchableOpacity>
           </>
         )}
       </View>
 
+      {/* 语言设置 */}
+      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.language.title')}</Text>
+        <TouchableOpacity
+          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
+          onPress={showLanguagePicker}
+        >
+          <Text style={[styles.linkButtonText, { color: colors.text }]}>
+            {t('settings.language.label')}
+          </Text>
+          <View style={styles.languageValue}>
+            <Text style={[styles.languageValueText, { color: colors.textSecondary }]}>
+              {getLanguageLabel(currentLanguage)}
+            </Text>
+            <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       {/* 关于 */}
       <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>关于</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.about.title')}</Text>
         <View style={styles.aboutContainer}>
-          <Text style={[styles.aboutText, { color: colors.text }]}>💧 喝水提醒</Text>
-          <Text style={[styles.aboutVersion, { color: colors.textTertiary }]}>版本 1.0.0</Text>
+          <Text style={[styles.aboutText, { color: colors.text }]}>💧 {t('settings.about.app_name')}</Text>
+          <Text style={[styles.aboutVersion, { color: colors.textTertiary }]}>{t('settings.about.version', { version: '1.0.0' })}</Text>
           <Text style={[styles.aboutDescription, { color: colors.textSecondary }]}>
-            帮助你养成健康的饮水习惯，{'\n'}
-            数据仅保存在本地，安全可靠。
+            {t('settings.about.description')}
           </Text>
         </View>
 
         <TouchableOpacity
           style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
           onPress={() => {
-            // 导航到隐私政策页面
-            require('expo-router').router.push('/privacy');
+            router.push('/privacy' as never);
           }}
         >
           <Text style={[styles.linkButtonText, { color: colors.primary }]}>
-            隐私政策
+            {t('settings.about.privacy_policy')}
           </Text>
           <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
         </TouchableOpacity>
@@ -207,7 +277,7 @@ export default function SettingsScreen() {
       {!permissionGranted && settings.reminder_enabled && (
         <View style={[styles.warningBox, { backgroundColor: colors.warningBackground }]}>
           <Text style={[styles.warningText, { color: colors.warningText }]}>
-            ⚠️ 通知权限未授予，请在系统设置中开启
+            ⚠️ {t('settings.reminder.permission_warning')}
           </Text>
         </View>
       )}
@@ -215,7 +285,7 @@ export default function SettingsScreen() {
       {Platform.OS === 'ios' && (
         <View style={[styles.infoBox, { backgroundColor: colors.infoBackground }]}>
           <Text style={[styles.infoText, { color: colors.infoText }]}>
-            💡 iOS 模拟器不支持通知，请在真机上测试
+            💡 {t('settings.ios_simulator_hint')}
           </Text>
         </View>
       )}
@@ -362,5 +432,13 @@ const styles = StyleSheet.create({
   },
   linkArrow: {
     fontSize: 20,
+  },
+  languageValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageValueText: {
+    fontSize: 16,
+    marginRight: 8,
   },
 });

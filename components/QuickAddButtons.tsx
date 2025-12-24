@@ -9,6 +9,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import * as Haptics from 'expo-haptics';
 
@@ -17,14 +18,14 @@ interface QuickAddButtonsProps {
 }
 
 const PRESET_AMOUNTS = [
-  { amount: 200, label: '一杯', icon: '☕' },
-  { amount: 300, label: '中杯', icon: '🥤' },
-  { amount: 500, label: '大杯', icon: '🍺' },
+  { amount: 200, labelKey: 'home.quick_add.small', icon: '☕' },
+  { amount: 300, labelKey: 'home.quick_add.medium', icon: '🥤' },
+  { amount: 500, labelKey: 'home.quick_add.large', icon: '🍺' },
 ];
 
 interface AnimatedButtonProps {
   amount: number;
-  label: string;
+  labelKey: string;
   icon: string;
   onAdd: (amount: number) => Promise<void>;
   colors: {
@@ -36,7 +37,8 @@ interface AnimatedButtonProps {
   };
 }
 
-function AnimatedButton({ amount, label, icon, onAdd, colors }: AnimatedButtonProps) {
+function AnimatedButton({ amount, labelKey, icon, onAdd, colors }: AnimatedButtonProps) {
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
   const [loading, setLoading] = useState(false);
 
@@ -92,7 +94,7 @@ function AnimatedButton({ amount, label, icon, onAdd, colors }: AnimatedButtonPr
               {amount}ml
             </Text>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
-              {label}
+              {t(labelKey)}
             </Text>
           </>
         )}
@@ -103,16 +105,17 @@ function AnimatedButton({ amount, label, icon, onAdd, colors }: AnimatedButtonPr
 
 export function QuickAddButtons({ onAdd }: QuickAddButtonsProps) {
   const { colors } = useThemeColors();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>快速记录</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t('home.quick_add.title')}</Text>
       <View style={styles.buttonsRow}>
-        {PRESET_AMOUNTS.map(({ amount, label, icon }) => (
+        {PRESET_AMOUNTS.map(({ amount, labelKey, icon }) => (
           <AnimatedButton
             key={amount}
             amount={amount}
-            label={label}
+            labelKey={labelKey}
             icon={icon}
             onAdd={onAdd}
             colors={colors}

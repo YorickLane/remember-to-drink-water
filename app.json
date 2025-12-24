@@ -1,18 +1,25 @@
 {
   "expo": {
-    "name": "remember-to-drink-water",
-    "slug": "remember-to-drink-water",
+    "name": "Water Reminder",
+    "slug": "water-reminder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "remembertodrinkwater",
+    "scheme": "waterreminder",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.remembertodrinkwater",
+      "bundleIdentifier": "com.nwarch.waterreminder",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationUsageDescription": "We need notification permission to remind you to drink water.",
+        "CFBundleLocalizations": [
+          "en",
+          "zh-Hans",
+          "zh-Hant"
+        ],
+        "CFBundleDevelopmentRegion": "en"
       },
       "jsEngine": "hermes"
     },
@@ -25,8 +32,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.remembertodrinkwater",
-      "jsEngine": "hermes"
+      "package": "com.nwarch.waterreminder",
+      "jsEngine": "hermes",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "output": "static",
@@ -46,13 +56,17 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-localization",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
+      "privacyPolicyUrl": "https://nwarch.com/privacy/water-reminder",
+      "supportEmail": "support@nwarch.com",
       "router": {},
       "eas": {
         "projectId": "9d1f144f-23d7-498e-b5a4-8daf4cdbc8ac"

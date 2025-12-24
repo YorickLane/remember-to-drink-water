@@ -5,6 +5,7 @@
 
 import { Platform } from 'react-native';
 import { AppSettings } from '@/types/models';
+import { parseTimeString } from '@/utils/time';
 
 // 条件导入：仅在非 Web 平台导入 expo-notifications
 let Notifications: typeof import('expo-notifications') | null = null;
@@ -14,15 +15,19 @@ if (Platform.OS !== 'web') {
 }
 
 // 扩展 Expo Notifications 类型定义
+// 使用条件类型确保类型安全
+type NotificationsModule = typeof import('expo-notifications');
+type TriggerTypes = NotificationsModule['SchedulableTriggerInputTypes'];
+
 type CalendarTriggerInput = {
-  type: any;
+  type: TriggerTypes['CALENDAR'];
   hour: number;
   minute: number;
   repeats: boolean;
 };
 
 type TimeIntervalTriggerInput = {
-  type: any;
+  type: TriggerTypes['TIME_INTERVAL'];
   seconds: number;
   repeats?: boolean;
 };
@@ -79,9 +84,17 @@ export async function scheduleReminders(settings: AppSettings): Promise<void> {
   // 取消所有现有通知
   await cancelAllReminders();
 
-  // 解析开始和结束时间
-  const [startHour, startMinute] = settings.reminder_start.split(':').map(Number);
-  const [endHour, endMinute] = settings.reminder_end.split(':').map(Number);
+  // 解析开始和结束时间（使用防御性解析）
+  const startTime = parseTimeString(settings.reminder_start);
+  const endTime = parseTimeString(settings.reminder_end);
+
+  if (!startTime || !endTime) {
+    console.error('Invalid time format in settings');
+    return;
+  }
+
+  const [startHour, startMinute] = startTime;
+  const [endHour, endMinute] = endTime;
 
   // 计算一天内的提醒次数
   const startMinutes = startHour * 60 + startMinute;

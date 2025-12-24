@@ -18,6 +18,7 @@ export interface AppSettings {
   reminder_end: string;           // 提醒结束时间 HH:mm
   reminder_interval_min: number;  // 提醒间隔（分钟）
   unit: 'ml' | 'oz';             // 单位
+  language: 'system' | 'en' | 'zh'; // 语言设置
 }
 
 // 日统计数据

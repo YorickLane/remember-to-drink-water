@@ -1,0 +1,10 @@
+{
+  "reminder": {
+    "title": "Time to drink water! 💧",
+    "body": "Stay hydrated and healthy!"
+  },
+  "test": {
+    "title": "Test Notification 💧",
+    "body": "Notifications are working!"
+  }
+}

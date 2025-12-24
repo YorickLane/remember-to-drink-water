@@ -1,0 +1,22 @@
+{
+  "title": "Today",
+  "progress": {
+    "remaining": "{{amount}} ml to go",
+    "completed": "Goal achieved!",
+    "exceeded": "Exceeded!"
+  },
+  "quick_add": {
+    "title": "Quick Add",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "log_list": {
+    "title": "Today's Log",
+    "count": "({{count}})",
+    "empty_title": "No records yet",
+    "empty_hint": "Tap the buttons above to start tracking!",
+    "delete_title": "Delete Record",
+    "delete_message": "Are you sure you want to delete this {{amount}}ml record?"
+  }
+}

@@ -8,6 +8,7 @@ import Animated, {
   FadeOutRight,
   Layout,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { WaterLog } from '@/types/models';
 import { format } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
@@ -20,15 +21,16 @@ interface WaterLogListProps {
 
 export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
   const { colors } = useThemeColors();
+  const { t } = useTranslation();
 
   const handleDelete = (log: WaterLog) => {
     Alert.alert(
-      '删除记录',
-      `确定要删除这条 ${log.amount_ml}ml 的记录吗？`,
+      t('home.log_list.delete_title'),
+      t('home.log_list.delete_message', { amount: log.amount_ml }),
       [
-        { text: '取消', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '删除',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -72,15 +74,15 @@ export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>💧</Text>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>今天还没有记录</Text>
-        <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>点击上方按钮开始记录吧！</Text>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('home.log_list.empty_title')}</Text>
+        <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>{t('home.log_list.empty_hint')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>今日记录 ({logs.length})</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{t('home.log_list.title')} {t('home.log_list.count', { count: logs.length })}</Text>
       <View style={styles.logsList}>
         {logs.map((log, index) => renderLogItem(log, index))}
       </View>

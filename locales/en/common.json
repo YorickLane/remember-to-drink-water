@@ -1,0 +1,13 @@
+{
+  "app_name": "Water Reminder",
+  "loading": "Loading...",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "back": "Back",
+  "save": "Save",
+  "error": "Error",
+  "success": "Success",
+  "retry": "Retry",
+  "got_it": "Got it"
+}
