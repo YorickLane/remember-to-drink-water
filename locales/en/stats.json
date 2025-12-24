@@ -1,0 +1,12 @@
+{
+  "title": "Statistics",
+  "week_overview": "7-Day Overview",
+  "total": "Total",
+  "average": "Daily Avg",
+  "completed_days": "Days Met Goal",
+  "completion_rate": "Completion Rate",
+  "chart_label": "Daily Intake (ml)",
+  "goal": "Goal",
+  "no_data": "No data for this week",
+  "start_tracking": "Start tracking your water intake!"
+}

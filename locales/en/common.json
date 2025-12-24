@@ -9,5 +9,11 @@
   "error": "Error",
   "success": "Success",
   "retry": "Retry",
-  "got_it": "Got it"
+  "got_it": "Got it",
+  "tabs": {
+    "today": "Today",
+    "stats": "Stats",
+    "history": "History",
+    "settings": "Settings"
+  }
 }

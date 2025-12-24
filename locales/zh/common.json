@@ -9,5 +9,11 @@
   "error": "错误",
   "success": "成功",
   "retry": "重试",
-  "got_it": "知道了"
+  "got_it": "知道了",
+  "tabs": {
+    "today": "今日",
+    "stats": "统计",
+    "history": "历史",
+    "settings": "设置"
+  }
 }

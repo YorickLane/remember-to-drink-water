@@ -50,6 +50,10 @@ export const Colors = {
     warningText: '#856404',
     infoBackground: '#D1ECF1',
     infoText: '#0C5460',
+
+    // 成就徽章
+    achievementUnlocked: '#FFD700',
+    achievementLocked: '#E0E0E0',
   },
 
   dark: {
@@ -99,6 +103,10 @@ export const Colors = {
     warningText: '#FFD60A',
     infoBackground: '#0A2E3D',
     infoText: '#5AC8FA',
+
+    // 成就徽章
+    achievementUnlocked: '#FFD700',
+    achievementLocked: '#48484A',
   },
 };
 

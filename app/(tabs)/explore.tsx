@@ -2,8 +2,8 @@
  * 设置页面
  */
 
-import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
-import { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,8 @@ import { useThemeColors } from '@/hooks/useThemeColors';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
 import { TimePicker } from '@/components/TimePicker';
 import { changeLanguage, getCurrentLanguageSetting } from '@/locales';
+import { exportAsJson, exportAsCsv, getDataSummary } from '@/lib/dataExport';
+import { importFromFile } from '@/lib/dataImport';
 import * as Haptics from 'expo-haptics';
 
 type LanguageOption = 'system' | 'en' | 'zh';
@@ -19,15 +21,24 @@ type LanguageOption = 'system' | 'en' | 'zh';
 export default function SettingsScreen() {
   const { colors } = useThemeColors();
   const { t, i18n } = useTranslation();
-  const { settings, loadSettings, updateSetting } = useWaterStore();
+  const { settings, loadSettings, updateSetting, loadTodayData } = useWaterStore();
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageOption>('system');
+  const [dataSummary, setDataSummary] = useState<{ logs: number; days: number } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  useEffect(() => {
+  const initializeSettings = useCallback(async () => {
     loadSettings();
     checkPermissions();
     loadLanguageSetting();
-  }, []);
+    // 加载数据摘要
+    const summary = await getDataSummary();
+    setDataSummary({ logs: summary.totalLogs, days: summary.totalDays });
+  }, [loadSettings]);
+
+  useEffect(() => {
+    initializeSettings();
+  }, [initializeSettings]);
 
   const checkPermissions = async () => {
     const granted = await requestNotificationPermissions();
@@ -80,7 +91,7 @@ export default function SettingsScreen() {
       await sendTestNotification();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(t('common.success'), t('settings.reminder.test_success'));
-    } catch (error) {
+    } catch {
       Alert.alert(t('common.error'), t('settings.reminder.test_error'));
     }
   };
@@ -90,6 +101,47 @@ export default function SettingsScreen() {
     setCurrentLanguage(lang);
     await updateSetting('language', lang);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleExportJson = async () => {
+    setIsExporting(true);
+    try {
+      const success = await exportAsJson();
+      if (success) {
+        Alert.alert(t('common.success'), t('settings.data.export_success'));
+      } else {
+        Alert.alert(t('common.error'), t('settings.data.export_failed'));
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const success = await exportAsCsv();
+      if (success) {
+        Alert.alert(t('common.success'), t('settings.data.export_success'));
+      } else {
+        Alert.alert(t('common.error'), t('settings.data.export_failed'));
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async () => {
+    const result = await importFromFile();
+    if (result.success) {
+      Alert.alert(t('common.success'), t('settings.data.import_success', { count: result.logsImported }));
+      // 刷新数据
+      loadTodayData();
+      const summary = await getDataSummary();
+      setDataSummary({ logs: summary.totalLogs, days: summary.totalDays });
+    } else if (result.error !== 'Cancelled') {
+      Alert.alert(t('common.error'), t('settings.data.import_failed', { error: result.error }));
+    }
   };
 
   const showLanguagePicker = () => {
@@ -246,6 +298,49 @@ export default function SettingsScreen() {
             </Text>
             <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
           </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* 数据管理 */}
+      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.data.title')}</Text>
+
+        {dataSummary && (
+          <Text style={[styles.dataSummary, { color: colors.textSecondary }]}>
+            {t('settings.data.summary', { logs: dataSummary.logs, days: dataSummary.days })}
+          </Text>
+        )}
+
+        <View style={styles.dataButtonsRow}>
+          <TouchableOpacity
+            style={[styles.dataButton, { backgroundColor: colors.primary }]}
+            onPress={handleExportJson}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.dataButtonText}>📦 {t('settings.data.export_json')}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.dataButton, { backgroundColor: colors.success }]}
+            onPress={handleExportCsv}
+            disabled={isExporting}
+          >
+            <Text style={styles.dataButtonText}>📊 {t('settings.data.export_csv')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
+          onPress={handleImport}
+        >
+          <Text style={[styles.linkButtonText, { color: colors.text }]}>
+            📥 {t('settings.data.import')}
+          </Text>
+          <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
         </TouchableOpacity>
       </View>
 
@@ -440,5 +535,26 @@ const styles = StyleSheet.create({
   languageValueText: {
     fontSize: 16,
     marginRight: 8,
+  },
+  dataSummary: {
+    fontSize: 14,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  dataButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  dataButton: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  dataButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

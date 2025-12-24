@@ -8,7 +8,6 @@ import Animated, {
   useAnimatedProps,
   useSharedValue,
   withSpring,
-  withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,6 @@ import { useThemeColors } from '@/hooks/useThemeColors';
 import { useEffect } from 'react';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const AnimatedText = Animated.createAnimatedComponent(Text);
 
 interface ProgressRingProps {
   current: number;      // 当前值（毫升）
@@ -62,7 +60,7 @@ export function ProgressRing({
         });
       }, 200);
     }
-  }, [current, goal]);
+  }, [current, goal, progress, animatedProgress, scale]);
 
   // 根据完成度显示不同颜色
   const getColor = () => {

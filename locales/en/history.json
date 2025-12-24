@@ -1,0 +1,10 @@
+{
+  "title": "History",
+  "calendar_title": "Monthly Overview",
+  "selected_day": "Selected Day",
+  "total_intake": "Total Intake",
+  "goal": "Goal",
+  "records": "Records",
+  "no_records": "No records for this day",
+  "tap_to_view": "Tap a date to view details"
+}

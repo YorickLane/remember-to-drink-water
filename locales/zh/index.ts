@@ -7,6 +7,9 @@ import home from './home.json';
 import settings from './settings.json';
 import privacy from './privacy.json';
 import notification from './notification.json';
+import stats from './stats.json';
+import history from './history.json';
+import achievements from './achievements.json';
 
 export default {
   common,
@@ -14,4 +17,7 @@ export default {
   settings,
   privacy,
   notification,
+  stats,
+  history,
+  achievements,
 };

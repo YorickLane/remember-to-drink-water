@@ -1,5 +1,16 @@
 {
   "title": "设置",
+  "data": {
+    "title": "数据管理",
+    "export_json": "导出为 JSON",
+    "export_csv": "导出为 CSV",
+    "import": "导入数据",
+    "export_success": "数据导出成功！",
+    "export_failed": "导出失败，请重试。",
+    "import_success": "成功导入 {{count}} 条记录！",
+    "import_failed": "导入失败：{{error}}",
+    "summary": "共 {{logs}} 条记录，{{days}} 天"
+  },
   "goal": {
     "title": "每日目标",
     "label": "目标水量",

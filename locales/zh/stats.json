@@ -1,0 +1,12 @@
+{
+  "title": "统计",
+  "week_overview": "7日概览",
+  "total": "总量",
+  "average": "日均",
+  "completed_days": "达标天数",
+  "completion_rate": "完成率",
+  "chart_label": "每日摄入量 (ml)",
+  "goal": "目标",
+  "no_data": "本周暂无数据",
+  "start_tracking": "开始记录你的饮水量吧！"
+}

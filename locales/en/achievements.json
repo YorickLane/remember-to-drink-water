@@ -1,0 +1,42 @@
+{
+  "title": "Achievements",
+  "unlocked": "Unlocked",
+  "in_progress": "In Progress",
+  "locked": "Locked",
+  "first_drop": {
+    "title": "First Drop",
+    "description": "Record your first water intake"
+  },
+  "hydration_start": {
+    "title": "Getting Started",
+    "description": "Drink a total of 1 liter"
+  },
+  "ten_liters": {
+    "title": "Ten Liters",
+    "description": "Drink a total of 10 liters"
+  },
+  "hundred_liters": {
+    "title": "Ocean Master",
+    "description": "Drink a total of 100 liters"
+  },
+  "streak_3": {
+    "title": "3-Day Streak",
+    "description": "Meet your goal for 3 consecutive days"
+  },
+  "streak_7": {
+    "title": "Week Champion",
+    "description": "Meet your goal for 7 consecutive days"
+  },
+  "streak_30": {
+    "title": "Monthly Master",
+    "description": "Meet your goal for 30 consecutive days"
+  },
+  "daily_goal": {
+    "title": "Goal Reached",
+    "description": "Meet your daily goal"
+  },
+  "overachiever": {
+    "title": "Overachiever",
+    "description": "Exceed your daily goal by 20%"
+  }
+}

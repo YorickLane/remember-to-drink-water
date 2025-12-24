@@ -1,0 +1,42 @@
+{
+  "title": "成就",
+  "unlocked": "已解锁",
+  "in_progress": "进行中",
+  "locked": "未解锁",
+  "first_drop": {
+    "title": "第一滴水",
+    "description": "记录第一次饮水"
+  },
+  "hydration_start": {
+    "title": "初步补水",
+    "description": "累计饮水 1 升"
+  },
+  "ten_liters": {
+    "title": "十升达成",
+    "description": "累计饮水 10 升"
+  },
+  "hundred_liters": {
+    "title": "海洋之王",
+    "description": "累计饮水 100 升"
+  },
+  "streak_3": {
+    "title": "三天连胜",
+    "description": "连续 3 天达成目标"
+  },
+  "streak_7": {
+    "title": "周冠军",
+    "description": "连续 7 天达成目标"
+  },
+  "streak_30": {
+    "title": "月度大师",
+    "description": "连续 30 天达成目标"
+  },
+  "daily_goal": {
+    "title": "目标达成",
+    "description": "完成每日目标"
+  },
+  "overachiever": {
+    "title": "超额完成",
+    "description": "超额完成每日目标 20%"
+  }
+}

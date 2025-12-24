@@ -1,5 +1,16 @@
 {
   "title": "Settings",
+  "data": {
+    "title": "Data Management",
+    "export_json": "Export as JSON",
+    "export_csv": "Export as CSV",
+    "import": "Import Data",
+    "export_success": "Data exported successfully!",
+    "export_failed": "Export failed. Please try again.",
+    "import_success": "Successfully imported {{count}} records!",
+    "import_failed": "Import failed: {{error}}",
+    "summary": "Total: {{logs}} records, {{days}} days"
+  },
   "goal": {
     "title": "Daily Goal",
     "label": "Target Amount",
