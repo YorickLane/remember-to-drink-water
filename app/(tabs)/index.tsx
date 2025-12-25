@@ -1,10 +1,12 @@
 /**
  * Home 页面 - 今日饮水记录
+ * 增强版：渐变背景、优化布局
  */
 
 import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useWaterStore } from '@/store/useWaterStore';
 import { useThemeColors } from '@/hooks/useThemeColors';
@@ -12,8 +14,10 @@ import { ProgressRing } from '@/components/ProgressRing';
 import { QuickAddButtons } from '@/components/QuickAddButtons';
 import { WaterLogList } from '@/components/WaterLogList';
 import { AchievementBadge } from '@/components/AchievementBadge';
+import { Card } from '@/components/Card';
 import { checkAchievements, getUnlockedAchievements } from '@/lib/achievements';
 import { Achievement } from '@/types/achievements';
+import { Layout } from '@/constants/Layout';
 
 export default function HomeScreen() {
   const { colors } = useThemeColors();
@@ -33,12 +37,10 @@ export default function HomeScreen() {
 
   const loadInitialData = useCallback(async () => {
     await Promise.all([loadTodayData(), loadSettings()]);
-    // 加载最近解锁的成就
     const unlocked = await getUnlockedAchievements();
-    setRecentAchievements(unlocked.slice(-4)); // 显示最近4个
+    setRecentAchievements(unlocked.slice(-4));
   }, [loadTodayData, loadSettings]);
 
-  // 初始加载数据
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
@@ -51,7 +53,6 @@ export default function HomeScreen() {
 
   const handleAddLog = async (amount: number) => {
     await addLog(amount);
-    // 检查成就
     const newlyUnlocked = await checkAchievements();
     if (newlyUnlocked.length > 0) {
       const unlocked = await getUnlockedAchievements();
@@ -66,19 +67,33 @@ export default function HomeScreen() {
   const goalMl = settings?.daily_goal_ml || 2000;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top', 'left', 'right']}
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* 进度环形图 */}
-        <View style={[styles.progressSection, { backgroundColor: colors.secondaryBackground }]}>
-          <ProgressRing current={todayTotal} goal={goalMl} size={220} />
-        </View>
+        {/* 渐变背景进度区域 */}
+        <LinearGradient
+          colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.progressSection}
+        >
+          <View style={styles.progressContainer}>
+            <ProgressRing current={todayTotal} goal={goalMl} />
+          </View>
+        </LinearGradient>
 
         {/* 快捷添加按钮 */}
         <QuickAddButtons onAdd={handleAddLog} />
@@ -90,16 +105,20 @@ export default function HomeScreen() {
 
         {/* 成就预览 */}
         {recentAchievements.length > 0 && (
-          <View style={[styles.achievementsSection, { backgroundColor: colors.cardBackground }]}>
+          <Card variant="elevated" style={styles.achievementsSection}>
             <Text style={[styles.achievementsTitle, { color: colors.text }]}>
               {t('achievements.unlocked')}
             </Text>
             <View style={styles.achievementsGrid}>
               {recentAchievements.map((achievement) => (
-                <AchievementBadge key={achievement.id} achievement={achievement} size="small" />
+                <AchievementBadge
+                  key={achievement.id}
+                  achievement={achievement}
+                  size="small"
+                />
               ))}
             </View>
-          </View>
+          </Card>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -114,26 +133,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: Layout.spacing.xl,
   },
   progressSection: {
+    paddingVertical: Layout.spacing.xxxl,
+    paddingHorizontal: Layout.padding.screen,
+    borderBottomLeftRadius: Layout.borderRadius.xxl,
+    borderBottomRightRadius: Layout.borderRadius.xxl,
+  },
+  progressContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
   },
   logsSection: {
     flex: 1,
-    minHeight: 300,
+    minHeight: 250,
   },
   achievementsSection: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 16,
+    marginHorizontal: Layout.padding.screen,
+    marginTop: Layout.spacing.lg,
   },
   achievementsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.semibold,
+    marginBottom: Layout.spacing.md,
   },
   achievementsGrid: {
     flexDirection: 'row',

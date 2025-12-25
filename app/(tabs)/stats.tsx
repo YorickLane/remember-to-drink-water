@@ -1,5 +1,6 @@
 /**
  * 统计页面 - 7日趋势
+ * 增强版：优化视觉效果和布局
  */
 
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
@@ -11,6 +12,8 @@ import { BarChart } from 'react-native-gifted-charts';
 import { format, subDays } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { useWaterStore } from '@/store/useWaterStore';
+import { Card } from '@/components/Card';
+import { Layout } from '@/constants/Layout';
 import { DayStats } from '@/types/models';
 
 export default function StatsScreen() {
@@ -24,7 +27,6 @@ export default function StatsScreen() {
   const loadWeekStats = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 获取过去7天的数据
       const { storageAdapter } = await import('@/lib/storage');
       const stats: DayStats[] = [];
       const goalMl = settings?.daily_goal_ml || 2000;
@@ -62,10 +64,9 @@ export default function StatsScreen() {
     }
   }, [settings, loadWeekStats, refreshKey]);
 
-  // 页面聚焦时刷新数据
   useFocusEffect(
     useCallback(() => {
-      setRefreshKey(k => k + 1);
+      setRefreshKey((k) => k + 1);
     }, [])
   );
 
@@ -73,48 +74,78 @@ export default function StatsScreen() {
   const totalMl = weekStats.reduce((sum, day) => sum + day.total_ml, 0);
   const avgMl = weekStats.length > 0 ? Math.round(totalMl / weekStats.length) : 0;
   const completedDays = weekStats.filter((day) => day.percentage >= 100).length;
-  const completionRate = weekStats.length > 0 ? Math.round((completedDays / weekStats.length) * 100) : 0;
+  const completionRate =
+    weekStats.length > 0 ? Math.round((completedDays / weekStats.length) * 100) : 0;
 
   // 图表数据
   const chartData = weekStats.map((day) => ({
     value: day.total_ml,
     label: format(new Date(day.date_key), 'EEE').slice(0, 2),
     frontColor: day.percentage >= 100 ? colors.progressComplete : colors.primary,
+    topLabelComponent: () =>
+      day.total_ml > 0 ? (
+        <Text style={[styles.barLabel, { color: colors.textTertiary }]}>
+          {day.total_ml >= 1000 ? `${(day.total_ml / 1000).toFixed(1)}L` : day.total_ml}
+        </Text>
+      ) : null,
   }));
 
   const goalMl = settings?.daily_goal_ml || 2000;
 
+  // 统计项目数据
+  const statsItems = [
+    {
+      value: totalMl >= 1000 ? `${(totalMl / 1000).toFixed(1)}L` : totalMl.toString(),
+      label: t('stats.total'),
+      color: colors.primary,
+    },
+    {
+      value: avgMl >= 1000 ? `${(avgMl / 1000).toFixed(1)}L` : avgMl.toString(),
+      label: t('stats.average'),
+      color: colors.primary,
+    },
+    {
+      value: `${completedDays}/7`,
+      label: t('stats.completed_days'),
+      color: colors.progressComplete,
+    },
+    {
+      value: `${completionRate}%`,
+      label: t('stats.completion_rate'),
+      color: colors.progressComplete,
+    },
+  ];
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top', 'left', 'right']}
+    >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* 标题 */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('stats.title')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {t('stats.title')}
+          </Text>
         </View>
 
-        {/* 统计卡片 */}
-        <View style={[styles.statsGrid, { backgroundColor: colors.cardBackground }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{totalMl.toLocaleString()}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.total')} (ml)</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.primary }]}>{avgMl.toLocaleString()}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.average')} (ml)</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.progressComplete }]}>{completedDays}/7</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.completed_days')}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: colors.progressComplete }]}>{completionRate}%</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('stats.completion_rate')}</Text>
-          </View>
+        {/* 统计卡片网格 */}
+        <View style={styles.statsGrid}>
+          {statsItems.map((item, index) => (
+            <Card key={index} variant="elevated" padding="compact" style={styles.statCard}>
+              <Text style={[styles.statValue, { color: item.color }]}>{item.value}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                {item.label}
+              </Text>
+            </Card>
+          ))}
         </View>
 
         {/* 7日趋势图表 */}
-        <View style={[styles.chartSection, { backgroundColor: colors.cardBackground }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('stats.week_overview')}</Text>
+        <Card variant="elevated" style={styles.chartSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('stats.week_overview')}
+          </Text>
 
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -125,16 +156,16 @@ export default function StatsScreen() {
               <BarChart
                 data={chartData}
                 width={280}
-                height={200}
-                barWidth={28}
-                spacing={16}
+                height={180}
+                barWidth={26}
+                spacing={18}
                 roundedTop
                 roundedBottom
                 xAxisThickness={1}
                 yAxisThickness={0}
                 xAxisColor={colors.border}
-                yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
-                xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
+                yAxisTextStyle={{ color: colors.textTertiary, fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 11 }}
                 noOfSections={4}
                 maxValue={Math.max(goalMl * 1.2, ...weekStats.map((d) => d.total_ml))}
                 showReferenceLine1
@@ -145,6 +176,7 @@ export default function StatsScreen() {
                   dashGap: 4,
                 }}
                 isAnimated
+                animationDuration={600}
               />
               <View style={styles.legendContainer}>
                 <View style={styles.legendItem}>
@@ -154,20 +186,27 @@ export default function StatsScreen() {
                   </Text>
                 </View>
                 <View style={styles.legendItem}>
-                  <View style={[styles.legendLine, { backgroundColor: colors.progressComplete }]} />
+                  <View
+                    style={[styles.legendLine, { backgroundColor: colors.progressComplete }]}
+                  />
                   <Text style={[styles.legendText, { color: colors.textSecondary }]}>
-                    {t('stats.goal')} ({goalMl} ml)
+                    {t('stats.goal')} ({goalMl >= 1000 ? `${goalMl / 1000}L` : `${goalMl}ml`})
                   </Text>
                 </View>
               </View>
             </View>
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('stats.no_data')}</Text>
-              <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>{t('stats.start_tracking')}</Text>
+              <Text style={styles.emptyIcon}>📊</Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                {t('stats.no_data')}
+              </Text>
+              <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
+                {t('stats.start_tracking')}
+              </Text>
             </View>
           )}
-        </View>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -178,54 +217,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: Layout.padding.screen,
+    paddingBottom: Layout.spacing.xxxl,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Layout.spacing.xl,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: Layout.fontSize.largeTitle,
+    fontWeight: Layout.fontWeight.bold,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    gap: Layout.spacing.md,
+    marginBottom: Layout.spacing.lg,
   },
-  statItem: {
-    width: '50%',
+  statCard: {
+    width: '47%',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: Layout.spacing.lg,
   },
   statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: Layout.fontSize.title1,
+    fontWeight: Layout.fontWeight.bold,
   },
   statLabel: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: Layout.fontSize.caption,
+    marginTop: Layout.spacing.xs,
   },
   chartSection: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    marginBottom: Layout.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: Layout.fontSize.headline,
+    fontWeight: Layout.fontWeight.semibold,
+    marginBottom: Layout.spacing.lg,
   },
   chartContainer: {
     alignItems: 'center',
   },
+  barLabel: {
+    fontSize: 9,
+    marginBottom: 4,
+  },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 16,
-    gap: 24,
+    marginTop: Layout.spacing.lg,
+    gap: Layout.spacing.xl,
   },
   legendItem: {
     flexDirection: 'row',
@@ -235,15 +275,15 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    marginRight: 6,
+    marginRight: Layout.spacing.xs,
   },
   legendLine: {
     width: 16,
     height: 2,
-    marginRight: 6,
+    marginRight: Layout.spacing.xs,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: Layout.fontSize.caption,
   },
   loadingContainer: {
     height: 200,
@@ -255,11 +295,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: Layout.spacing.md,
+  },
   emptyText: {
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: Layout.fontSize.callout,
+    marginBottom: Layout.spacing.xs,
   },
   emptyHint: {
-    fontSize: 14,
+    fontSize: Layout.fontSize.footnote,
   },
 });

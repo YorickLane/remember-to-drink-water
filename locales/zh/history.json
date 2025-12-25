@@ -6,5 +6,8 @@
   "goal": "目标",
   "records": "记录",
   "no_records": "当日无记录",
-  "tap_to_view": "点击日期查看详情"
+  "tap_to_view": "点击日期查看详情",
+  "legend_less": "少",
+  "legend_more": "多",
+  "more": "条更多"
 }

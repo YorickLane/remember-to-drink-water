@@ -1,8 +1,19 @@
 /**
  * 设置页面
+ * 增强版：优化视觉效果、卡片布局、交互体验
  */
 
-import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Alert,
+  Platform,
+  ActivityIndicator,
+  Pressable,
+} from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -11,6 +22,8 @@ import { useWaterStore } from '@/store/useWaterStore';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { requestNotificationPermissions, sendTestNotification } from '@/lib/notifications';
 import { TimePicker } from '@/components/TimePicker';
+import { Card } from '@/components/Card';
+import { Layout } from '@/constants/Layout';
 import { changeLanguage, getCurrentLanguageSetting } from '@/locales';
 import { exportAsJson, exportAsCsv, getDataSummary } from '@/lib/dataExport';
 import { importFromFile } from '@/lib/dataImport';
@@ -31,7 +44,6 @@ export default function SettingsScreen() {
     loadSettings();
     checkPermissions();
     loadLanguageSetting();
-    // 加载数据摘要
     const summary = await getDataSummary();
     setDataSummary({ logs: summary.totalLogs, days: summary.totalDays });
   }, [loadSettings]);
@@ -134,8 +146,10 @@ export default function SettingsScreen() {
   const handleImport = async () => {
     const result = await importFromFile();
     if (result.success) {
-      Alert.alert(t('common.success'), t('settings.data.import_success', { count: result.logsImported }));
-      // 刷新数据
+      Alert.alert(
+        t('common.success'),
+        t('settings.data.import_success', { count: result.logsImported })
+      );
       loadTodayData();
       const summary = await getDataSummary();
       setDataSummary({ logs: summary.totalLogs, days: summary.totalDays });
@@ -151,17 +165,13 @@ export default function SettingsScreen() {
       { label: t('settings.language.en'), value: 'en' },
     ];
 
-    Alert.alert(
-      t('settings.language.label'),
-      undefined,
-      [
-        ...options.map((option) => ({
-          text: option.value === currentLanguage ? `✓ ${option.label}` : option.label,
-          onPress: () => handleLanguageChange(option.value),
-        })),
-        { text: t('common.cancel'), style: 'cancel' },
-      ]
-    );
+    Alert.alert(t('settings.language.label'), undefined, [
+      ...options.map((option) => ({
+        text: option.value === currentLanguage ? `✓ ${option.label}` : option.label,
+        onPress: () => handleLanguageChange(option.value),
+      })),
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
   };
 
   const getLanguageLabel = (lang: LanguageOption): string => {
@@ -177,213 +187,249 @@ export default function SettingsScreen() {
 
   if (!settings) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
-        <Text style={{ color: colors.text }}>{t('common.loading')}</Text>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        edges={['top', 'left', 'right']}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.secondaryBackground }]} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
-      {/* 标题 */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settings.title')}</Text>
-      </View>
-
-      {/* 每日目标 */}
-      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.goal.title')}</Text>
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.goal.label')}</Text>
-          <View style={styles.counterContainer}>
-            <TouchableOpacity
-              style={[styles.counterButton, { backgroundColor: colors.primary }]}
-              onPress={() => handleGoalChange(-100)}
-            >
-              <Text style={styles.counterButtonText}>−</Text>
-            </TouchableOpacity>
-            <Text style={[styles.counterValue, { color: colors.text }]}>{settings.daily_goal_ml} ml</Text>
-            <TouchableOpacity
-              style={[styles.counterButton, { backgroundColor: colors.primary }]}
-              onPress={() => handleGoalChange(100)}
-            >
-              <Text style={styles.counterButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top', 'left', 'right']}
+    >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* 标题 */}
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {t('settings.title')}
+          </Text>
         </View>
-        <Text style={[styles.hint, { color: colors.textTertiary }]}>{t('settings.goal.hint')}</Text>
-      </View>
 
-      {/* 提醒设置 */}
-      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.reminder.title')}</Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.reminder.enable.label')}</Text>
-            <Text style={[styles.settingDescription, { color: colors.textTertiary }]}>
-              {t('settings.reminder.enable.hint')}
+        {/* 每日目标 */}
+        <Card variant="elevated" style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('settings.goal.title')}
+          </Text>
+          <View style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>
+              {t('settings.goal.label')}
             </Text>
-          </View>
-          <Switch
-            value={settings.reminder_enabled}
-            onValueChange={handleReminderToggle}
-            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
-            thumbColor={colors.switchThumb}
-          />
-        </View>
-
-        {settings.reminder_enabled && (
-          <>
-            <View style={styles.timePickerSection}>
-              <TimePicker
-                label={t('settings.reminder.start_time')}
-                value={settings.reminder_start}
-                onChange={(time) => updateSetting('reminder_start', time)}
-              />
-              <View style={styles.timePickerSpacer} />
-              <TimePicker
-                label={t('settings.reminder.end_time')}
-                value={settings.reminder_end}
-                onChange={(time) => updateSetting('reminder_end', time)}
-              />
+            <View style={styles.counterContainer}>
+              <Pressable
+                style={[styles.counterButton, { backgroundColor: colors.primary }]}
+                onPress={() => handleGoalChange(-100)}
+              >
+                <Text style={styles.counterButtonText}>−</Text>
+              </Pressable>
+              <Text style={[styles.counterValue, { color: colors.text }]}>
+                {settings.daily_goal_ml} ml
+              </Text>
+              <Pressable
+                style={[styles.counterButton, { backgroundColor: colors.primary }]}
+                onPress={() => handleGoalChange(100)}
+              >
+                <Text style={styles.counterButtonText}>+</Text>
+              </Pressable>
             </View>
+          </View>
+          <Text style={[styles.hint, { color: colors.textTertiary }]}>
+            {t('settings.goal.hint')}
+          </Text>
+        </Card>
 
-            <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('settings.reminder.interval.label')}</Text>
-              <View style={styles.counterContainer}>
-                <TouchableOpacity
-                  style={[styles.counterButton, { backgroundColor: colors.primary }]}
-                  onPress={() => handleIntervalChange(-30)}
-                >
-                  <Text style={styles.counterButtonText}>−</Text>
-                </TouchableOpacity>
-                <Text style={[styles.counterValue, { color: colors.text }]}>
-                  {settings.reminder_interval_min} {i18n.language === 'zh' ? '分钟' : 'min'}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.counterButton, { backgroundColor: colors.primary }]}
-                  onPress={() => handleIntervalChange(30)}
-                >
-                  <Text style={styles.counterButtonText}>+</Text>
-                </TouchableOpacity>
+        {/* 提醒设置 */}
+        <Card variant="elevated" style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('settings.reminder.title')}
+          </Text>
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                {t('settings.reminder.enable.label')}
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textTertiary }]}>
+                {t('settings.reminder.enable.hint')}
+              </Text>
+            </View>
+            <Switch
+              value={settings.reminder_enabled}
+              onValueChange={handleReminderToggle}
+              trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
+              thumbColor={colors.switchThumb}
+            />
+          </View>
+
+          {settings.reminder_enabled && (
+            <>
+              <View style={styles.timePickerSection}>
+                <TimePicker
+                  label={t('settings.reminder.start_time')}
+                  value={settings.reminder_start}
+                  onChange={(time) => updateSetting('reminder_start', time)}
+                />
+                <View style={styles.timePickerSpacer} />
+                <TimePicker
+                  label={t('settings.reminder.end_time')}
+                  value={settings.reminder_end}
+                  onChange={(time) => updateSetting('reminder_end', time)}
+                />
               </View>
-            </View>
-            <Text style={[styles.hint, { color: colors.textTertiary }]}>{t('settings.reminder.interval.hint')}</Text>
 
-            <TouchableOpacity
-              style={[styles.testButton, { backgroundColor: colors.success }]}
-              onPress={handleTestNotification}
-            >
-              <Text style={styles.testButtonText}>📬 {t('settings.reminder.test_button')}</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+              <View style={styles.settingRow}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>
+                  {t('settings.reminder.interval.label')}
+                </Text>
+                <View style={styles.counterContainer}>
+                  <Pressable
+                    style={[styles.counterButton, { backgroundColor: colors.primary }]}
+                    onPress={() => handleIntervalChange(-30)}
+                  >
+                    <Text style={styles.counterButtonText}>−</Text>
+                  </Pressable>
+                  <Text style={[styles.counterValue, { color: colors.text }]}>
+                    {settings.reminder_interval_min} {i18n.language === 'zh' ? '分钟' : 'min'}
+                  </Text>
+                  <Pressable
+                    style={[styles.counterButton, { backgroundColor: colors.primary }]}
+                    onPress={() => handleIntervalChange(30)}
+                  >
+                    <Text style={styles.counterButtonText}>+</Text>
+                  </Pressable>
+                </View>
+              </View>
+              <Text style={[styles.hint, { color: colors.textTertiary }]}>
+                {t('settings.reminder.interval.hint')}
+              </Text>
 
-      {/* 语言设置 */}
-      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.language.title')}</Text>
-        <TouchableOpacity
-          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
-          onPress={showLanguagePicker}
-        >
-          <Text style={[styles.linkButtonText, { color: colors.text }]}>
-            {t('settings.language.label')}
+              <Pressable
+                style={[styles.testButton, { backgroundColor: colors.accent }]}
+                onPress={handleTestNotification}
+              >
+                <Text style={styles.testButtonText}>
+                  {t('settings.reminder.test_button')}
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </Card>
+
+        {/* 通用设置 */}
+        <Card variant="elevated" style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('settings.language.title')}
           </Text>
-          <View style={styles.languageValue}>
-            <Text style={[styles.languageValueText, { color: colors.textSecondary }]}>
-              {getLanguageLabel(currentLanguage)}
+          <Pressable
+            style={[styles.listItem, { backgroundColor: colors.logItemBackground }]}
+            onPress={showLanguagePicker}
+          >
+            <Text style={[styles.listItemLabel, { color: colors.text }]}>
+              {t('settings.language.label')}
             </Text>
-            <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+            <View style={styles.listItemRight}>
+              <Text style={[styles.listItemValue, { color: colors.textSecondary }]}>
+                {getLanguageLabel(currentLanguage)}
+              </Text>
+              <Text style={[styles.listItemArrow, { color: colors.textTertiary }]}>›</Text>
+            </View>
+          </Pressable>
+        </Card>
 
-      {/* 数据管理 */}
-      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.data.title')}</Text>
-
-        {dataSummary && (
-          <Text style={[styles.dataSummary, { color: colors.textSecondary }]}>
-            {t('settings.data.summary', { logs: dataSummary.logs, days: dataSummary.days })}
+        {/* 数据管理 */}
+        <Card variant="elevated" style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('settings.data.title')}
           </Text>
+
+          {dataSummary && (
+            <Text style={[styles.dataSummary, { color: colors.textSecondary }]}>
+              {t('settings.data.summary', { logs: dataSummary.logs, days: dataSummary.days })}
+            </Text>
+          )}
+
+          <View style={styles.dataButtonsRow}>
+            <Pressable
+              style={[styles.dataButton, { backgroundColor: colors.primary }]}
+              onPress={handleExportJson}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.dataButtonText}>{t('settings.data.export_json')}</Text>
+              )}
+            </Pressable>
+
+            <Pressable
+              style={[styles.dataButton, { backgroundColor: colors.accent }]}
+              onPress={handleExportCsv}
+              disabled={isExporting}
+            >
+              <Text style={styles.dataButtonText}>{t('settings.data.export_csv')}</Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={[styles.listItem, { backgroundColor: colors.logItemBackground }]}
+            onPress={handleImport}
+          >
+            <Text style={[styles.listItemLabel, { color: colors.text }]}>
+              {t('settings.data.import')}
+            </Text>
+            <Text style={[styles.listItemArrow, { color: colors.textTertiary }]}>›</Text>
+          </Pressable>
+        </Card>
+
+        {/* 关于 */}
+        <Card variant="elevated" style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t('settings.about.title')}
+          </Text>
+          <View style={styles.aboutContainer}>
+            <Text style={[styles.aboutTitle, { color: colors.text }]}>
+              💧 {t('settings.about.app_name')}
+            </Text>
+            <Text style={[styles.aboutVersion, { color: colors.textTertiary }]}>
+              {t('settings.about.version', { version: '1.0.0' })}
+            </Text>
+            <Text style={[styles.aboutDescription, { color: colors.textSecondary }]}>
+              {t('settings.about.description')}
+            </Text>
+          </View>
+
+          <Pressable
+            style={[styles.listItem, { backgroundColor: colors.logItemBackground }]}
+            onPress={() => router.push('/privacy' as never)}
+          >
+            <Text style={[styles.listItemLabel, { color: colors.primary }]}>
+              {t('settings.about.privacy_policy')}
+            </Text>
+            <Text style={[styles.listItemArrow, { color: colors.textTertiary }]}>›</Text>
+          </Pressable>
+        </Card>
+
+        {/* 提示信息 */}
+        {!permissionGranted && settings.reminder_enabled && (
+          <View style={[styles.warningBox, { backgroundColor: colors.warningBackground }]}>
+            <Text style={[styles.warningText, { color: colors.warningText }]}>
+              {t('settings.reminder.permission_warning')}
+            </Text>
+          </View>
         )}
 
-        <View style={styles.dataButtonsRow}>
-          <TouchableOpacity
-            style={[styles.dataButton, { backgroundColor: colors.primary }]}
-            onPress={handleExportJson}
-            disabled={isExporting}
-          >
-            {isExporting ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.dataButtonText}>📦 {t('settings.data.export_json')}</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.dataButton, { backgroundColor: colors.success }]}
-            onPress={handleExportCsv}
-            disabled={isExporting}
-          >
-            <Text style={styles.dataButtonText}>📊 {t('settings.data.export_csv')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
-          onPress={handleImport}
-        >
-          <Text style={[styles.linkButtonText, { color: colors.text }]}>
-            📥 {t('settings.data.import')}
-          </Text>
-          <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 关于 */}
-      <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('settings.about.title')}</Text>
-        <View style={styles.aboutContainer}>
-          <Text style={[styles.aboutText, { color: colors.text }]}>💧 {t('settings.about.app_name')}</Text>
-          <Text style={[styles.aboutVersion, { color: colors.textTertiary }]}>{t('settings.about.version', { version: '1.0.0' })}</Text>
-          <Text style={[styles.aboutDescription, { color: colors.textSecondary }]}>
-            {t('settings.about.description')}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.linkButton, { backgroundColor: colors.logItemBackground }]}
-          onPress={() => {
-            router.push('/privacy' as never);
-          }}
-        >
-          <Text style={[styles.linkButtonText, { color: colors.primary }]}>
-            {t('settings.about.privacy_policy')}
-          </Text>
-          <Text style={[styles.linkArrow, { color: colors.textDisabled }]}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 提示信息 */}
-      {!permissionGranted && settings.reminder_enabled && (
-        <View style={[styles.warningBox, { backgroundColor: colors.warningBackground }]}>
-          <Text style={[styles.warningText, { color: colors.warningText }]}>
-            ⚠️ {t('settings.reminder.permission_warning')}
-          </Text>
-        </View>
-      )}
-
-      {Platform.OS === 'ios' && (
-        <View style={[styles.infoBox, { backgroundColor: colors.infoBackground }]}>
-          <Text style={[styles.infoText, { color: colors.infoText }]}>
-            💡 {t('settings.ios_simulator_hint')}
-          </Text>
-        </View>
-      )}
+        {Platform.OS === 'ios' && (
+          <View style={[styles.infoBox, { backgroundColor: colors.infoBackground }]}>
+            <Text style={[styles.infoText, { color: colors.infoText }]}>
+              {t('settings.ios_simulator_hint')}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -393,168 +439,171 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: Layout.padding.screen,
+    paddingBottom: Layout.spacing.xxxl,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Layout.spacing.xl,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: Layout.fontSize.largeTitle,
+    fontWeight: Layout.fontWeight.bold,
   },
   section: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    marginBottom: Layout.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: Layout.fontSize.title3,
+    fontWeight: Layout.fontWeight.semibold,
+    marginBottom: Layout.spacing.lg,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: Layout.spacing.md,
   },
   settingInfo: {
     flex: 1,
-    marginRight: 12,
+    marginRight: Layout.spacing.md,
   },
   settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.medium,
+    marginBottom: Layout.spacing.xxs,
   },
   settingDescription: {
-    fontSize: 14,
+    fontSize: Layout.fontSize.footnote,
   },
   counterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Layout.spacing.md,
   },
   counterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   counterButtonText: {
     fontSize: 24,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: Layout.fontWeight.semibold,
   },
   counterValue: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.semibold,
     minWidth: 100,
     textAlign: 'center',
   },
   hint: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  testButton: {
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  testButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  aboutContainer: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  aboutText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  aboutVersion: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  aboutDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  warningBox: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  warningText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  infoBox: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  infoText: {
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: Layout.fontSize.caption,
+    marginTop: Layout.spacing.xs,
   },
   timePickerSection: {
-    marginTop: 8,
-    gap: 12,
+    marginTop: Layout.spacing.sm,
+    gap: Layout.spacing.md,
   },
   timePickerSpacer: {
-    height: 8,
+    height: Layout.spacing.sm,
   },
-  linkButton: {
+  testButton: {
+    borderRadius: Layout.borderRadius.md,
+    padding: Layout.spacing.lg,
+    alignItems: 'center',
+    marginTop: Layout.spacing.lg,
+  },
+  testButtonText: {
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.semibold,
+    color: '#fff',
+  },
+  listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 12,
+    padding: Layout.spacing.lg,
+    borderRadius: Layout.borderRadius.md,
+    marginTop: Layout.spacing.sm,
   },
-  linkButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
+  listItemLabel: {
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.medium,
   },
-  linkArrow: {
-    fontSize: 20,
-  },
-  languageValue: {
+  listItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  languageValueText: {
-    fontSize: 16,
-    marginRight: 8,
+  listItemValue: {
+    fontSize: Layout.fontSize.callout,
+    marginRight: Layout.spacing.sm,
+  },
+  listItemArrow: {
+    fontSize: 20,
   },
   dataSummary: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: Layout.fontSize.footnote,
+    marginBottom: Layout.spacing.md,
     textAlign: 'center',
   },
   dataButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
+    gap: Layout.spacing.md,
+    marginBottom: Layout.spacing.sm,
   },
   dataButton: {
     flex: 1,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: Layout.borderRadius.md,
+    padding: Layout.spacing.lg,
     alignItems: 'center',
   },
   dataButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: Layout.fontSize.footnote,
+    fontWeight: Layout.fontWeight.semibold,
     color: '#fff',
+  },
+  aboutContainer: {
+    alignItems: 'center',
+    paddingVertical: Layout.spacing.md,
+  },
+  aboutTitle: {
+    fontSize: Layout.fontSize.headline,
+    fontWeight: Layout.fontWeight.semibold,
+    marginBottom: Layout.spacing.xs,
+  },
+  aboutVersion: {
+    fontSize: Layout.fontSize.footnote,
+    marginBottom: Layout.spacing.md,
+  },
+  aboutDescription: {
+    fontSize: Layout.fontSize.footnote,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  warningBox: {
+    borderRadius: Layout.borderRadius.md,
+    padding: Layout.spacing.lg,
+    marginBottom: Layout.spacing.lg,
+  },
+  warningText: {
+    fontSize: Layout.fontSize.footnote,
+    textAlign: 'center',
+  },
+  infoBox: {
+    borderRadius: Layout.borderRadius.md,
+    padding: Layout.spacing.lg,
+    marginBottom: Layout.spacing.lg,
+  },
+  infoText: {
+    fontSize: Layout.fontSize.footnote,
+    textAlign: 'center',
   },
 });

@@ -1,114 +1,225 @@
 /**
- * 饮水记录列表组件
+ * 饮水记录列表组件 - 增强版
+ * 支持滑动删除和时间线效果
  */
 
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Pressable } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutRight,
-  Layout,
+  Layout as ReanimatedLayout,
 } from 'react-native-reanimated';
+import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { WaterLog } from '@/types/models';
 import { format } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { Layout } from '@/constants/Layout';
 import * as Haptics from 'expo-haptics';
+import { useRef } from 'react';
 
 interface WaterLogListProps {
   logs: WaterLog[];
   onDelete: (id: string) => Promise<void>;
 }
 
-export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
+interface LogItemProps {
+  item: WaterLog;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  onDelete: (id: string) => Promise<void>;
+}
+
+function LogItem({ item, index, isFirst, isLast, onDelete }: LogItemProps) {
   const { colors } = useThemeColors();
   const { t } = useTranslation();
+  const swipeableRef = useRef<Swipeable>(null);
+  const time = format(item.timestamp, 'HH:mm');
 
-  const handleDelete = (log: WaterLog) => {
+  const handleDelete = () => {
     Alert.alert(
       t('home.log_list.delete_title'),
-      t('home.log_list.delete_message', { amount: log.amount_ml }),
+      t('home.log_list.delete_message', { amount: item.amount_ml }),
       [
-        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+          onPress: () => swipeableRef.current?.close(),
+        },
         {
           text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            await onDelete(log.id);
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            await onDelete(item.id);
           },
         },
       ]
     );
   };
 
-  const renderLogItem = (item: WaterLog, index: number) => {
-    const time = format(item.timestamp, 'HH:mm');
+  const renderRightActions = () => (
+    <Pressable
+      style={[styles.deleteAction, { backgroundColor: colors.deleteBackground }]}
+      onPress={handleDelete}
+    >
+      <Text style={[styles.deleteActionText, { color: colors.deleteText }]}>
+        {t('common.delete')}
+      </Text>
+    </Pressable>
+  );
 
-    return (
-      <Animated.View
-        key={item.id}
-        entering={FadeInDown.delay(index * 50).springify()}
-        exiting={FadeOutRight.duration(300)}
-        layout={Layout.springify()}
-        style={[styles.logItem, { backgroundColor: colors.logItemBackground }]}
-      >
-        <View style={styles.logContent}>
-          <Text style={styles.dropIcon}>💧</Text>
-          <View style={styles.logInfo}>
-            <Text style={[styles.amount, { color: colors.text }]}>{item.amount_ml} ml</Text>
-            <Text style={[styles.time, { color: colors.textTertiary }]}>{time}</Text>
-          </View>
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(index * 80).springify().damping(18)}
+      exiting={FadeOutRight.duration(300)}
+      layout={ReanimatedLayout.springify()}
+    >
+      <View style={styles.timelineContainer}>
+        {/* 时间线 */}
+        <View style={styles.timeline}>
+          {!isFirst && (
+            <View style={[styles.lineTop, { backgroundColor: colors.border }]} />
+          )}
+          <View style={[styles.dot, { backgroundColor: colors.primary }]} />
+          {!isLast && (
+            <View style={[styles.lineBottom, { backgroundColor: colors.border }]} />
+          )}
         </View>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+
+        {/* 记录卡片 */}
+        <Swipeable
+          ref={swipeableRef}
+          renderRightActions={renderRightActions}
+          overshootRight={false}
+          friction={2}
+          rightThreshold={40}
+          onSwipeableOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+          containerStyle={styles.swipeableContainer}
         >
-          <Text style={styles.deleteIcon}>🗑️</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
+          <View style={[styles.logItem, { backgroundColor: colors.logItemBackground }]}>
+            <View style={styles.logContent}>
+              <Text style={styles.dropIcon}>💧</Text>
+              <View style={styles.logInfo}>
+                <Text style={[styles.amount, { color: colors.text }]}>
+                  {item.amount_ml} ml
+                </Text>
+                <Text style={[styles.time, { color: colors.textTertiary }]}>{time}</Text>
+              </View>
+            </View>
+            <View style={[styles.swipeHint, { backgroundColor: colors.border }]} />
+          </View>
+        </Swipeable>
+      </View>
+    </Animated.View>
+  );
+}
+
+export function WaterLogList({ logs, onDelete }: WaterLogListProps) {
+  const { colors } = useThemeColors();
+  const { t } = useTranslation();
 
   if (logs.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>💧</Text>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('home.log_list.empty_title')}</Text>
-        <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>{t('home.log_list.empty_hint')}</Text>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+          {t('home.log_list.empty_title')}
+        </Text>
+        <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
+          {t('home.log_list.empty_hint')}
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>{t('home.log_list.title')} {t('home.log_list.count', { count: logs.length })}</Text>
-      <View style={styles.logsList}>
-        {logs.map((log, index) => renderLogItem(log, index))}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t('home.log_list.title')}
+        </Text>
+        <Text style={[styles.count, { color: colors.textTertiary }]}>
+          {t('home.log_list.count', { count: logs.length })}
+        </Text>
       </View>
+      <Text style={[styles.swipeHintText, { color: colors.textTertiary }]}>
+        {t('home.log_list.swipe_hint')}
+      </Text>
+      <GestureHandlerRootView style={styles.logsList}>
+        {logs.map((log, index) => (
+          <LogItem
+            key={log.id}
+            item={log}
+            index={index}
+            isFirst={index === 0}
+            isLast={index === logs.length - 1}
+            onDelete={onDelete}
+          />
+        ))}
+      </GestureHandlerRootView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.padding.screen,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Layout.spacing.xs,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontSize: Layout.fontSize.headline,
+    fontWeight: Layout.fontWeight.semibold,
+  },
+  count: {
+    fontSize: Layout.fontSize.footnote,
+    marginLeft: Layout.spacing.sm,
+  },
+  swipeHintText: {
+    fontSize: Layout.fontSize.caption,
+    marginBottom: Layout.spacing.md,
   },
   logsList: {
-    gap: 8,
+    gap: 0,
+  },
+  timelineContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  timeline: {
+    width: 24,
+    alignItems: 'center',
+    marginRight: Layout.spacing.md,
+  },
+  lineTop: {
+    width: 2,
+    flex: 1,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  lineBottom: {
+    width: 2,
+    flex: 1,
+  },
+  swipeableContainer: {
+    flex: 1,
+    marginBottom: Layout.spacing.sm,
   },
   logItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    borderRadius: Layout.borderRadius.md,
+    padding: Layout.spacing.lg,
+    ...Layout.shadow.sm,
   },
   logContent: {
     flexDirection: 'row',
@@ -117,40 +228,52 @@ const styles = StyleSheet.create({
   },
   dropIcon: {
     fontSize: 24,
-    marginRight: 12,
+    marginRight: Layout.spacing.md,
   },
   logInfo: {
     flex: 1,
   },
   amount: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: Layout.fontSize.callout,
+    fontWeight: Layout.fontWeight.semibold,
   },
   time: {
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: Layout.fontSize.caption,
+    marginTop: Layout.spacing.xxs,
   },
-  deleteButton: {
-    padding: 8,
+  swipeHint: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+    opacity: 0.5,
   },
-  deleteIcon: {
-    fontSize: 20,
+  deleteAction: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    borderRadius: Layout.borderRadius.md,
+    marginLeft: Layout.spacing.sm,
+  },
+  deleteActionText: {
+    fontSize: Layout.fontSize.footnote,
+    fontWeight: Layout.fontWeight.semibold,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: Layout.spacing.xxxl,
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: Layout.spacing.lg,
   },
   emptyText: {
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: Layout.fontSize.headline,
+    fontWeight: Layout.fontWeight.medium,
+    marginBottom: Layout.spacing.sm,
   },
   emptyHint: {
-    fontSize: 14,
+    fontSize: Layout.fontSize.footnote,
   },
 });

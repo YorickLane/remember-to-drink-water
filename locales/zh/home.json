@@ -9,7 +9,10 @@
     "title": "快速记录",
     "small": "小杯",
     "medium": "中杯",
-    "large": "大杯"
+    "large": "大杯",
+    "custom": "自定义",
+    "custom_title": "输入饮水量",
+    "custom_hint": "范围：1-5000 ml"
   },
   "log_list": {
     "title": "今日记录",
@@ -17,6 +20,7 @@
     "empty_title": "今天还没有记录",
     "empty_hint": "点击上方按钮开始记录吧！",
     "delete_title": "删除记录",
-    "delete_message": "确定要删除这条 {{amount}}ml 的记录吗？"
+    "delete_message": "确定要删除这条 {{amount}}ml 的记录吗？",
+    "swipe_hint": "左滑可删除记录"
   }
 }

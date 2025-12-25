@@ -6,5 +6,8 @@
   "goal": "Goal",
   "records": "Records",
   "no_records": "No records for this day",
-  "tap_to_view": "Tap a date to view details"
+  "tap_to_view": "Tap a date to view details",
+  "legend_less": "Less",
+  "legend_more": "More",
+  "more": "more"
 }
