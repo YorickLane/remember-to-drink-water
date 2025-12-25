@@ -5,6 +5,7 @@
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getDay } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
@@ -24,8 +25,9 @@ export default function HistoryScreen() {
   const { settings, loadSettings } = useWaterStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthData, setMonthData] = useState<Map<string, DayData>>(new Map());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const goalMl = settings?.daily_goal_ml || 2000;
 
@@ -68,7 +70,14 @@ export default function HistoryScreen() {
     if (settings) {
       loadMonthData();
     }
-  }, [settings, loadMonthData]);
+  }, [settings, loadMonthData, refreshKey]);
+
+  // 页面聚焦时刷新数据
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey(k => k + 1);
+    }, [])
+  );
 
   const handlePrevMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1));
@@ -148,6 +157,7 @@ export default function HistoryScreen() {
                           ? `rgba(${hexToRgb(colors.primary)}, ${bgOpacity})`
                           : 'transparent',
                     },
+                    isToday && !isSelected && { borderWidth: 2, borderColor: colors.primary },
                   ]}
                 >
                   <Text

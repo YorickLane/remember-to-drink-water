@@ -5,6 +5,7 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { BarChart } from 'react-native-gifted-charts';
 import { format, subDays } from 'date-fns';
@@ -18,6 +19,7 @@ export default function StatsScreen() {
   const { settings, loadSettings } = useWaterStore();
   const [weekStats, setWeekStats] = useState<DayStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const loadWeekStats = useCallback(async () => {
     setIsLoading(true);
@@ -58,7 +60,14 @@ export default function StatsScreen() {
     if (settings) {
       loadWeekStats();
     }
-  }, [settings, loadWeekStats]);
+  }, [settings, loadWeekStats, refreshKey]);
+
+  // 页面聚焦时刷新数据
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey(k => k + 1);
+    }, [])
+  );
 
   // 计算统计数据
   const totalMl = weekStats.reduce((sum, day) => sum + day.total_ml, 0);
