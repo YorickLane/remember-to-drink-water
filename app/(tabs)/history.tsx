@@ -1,6 +1,6 @@
 /**
  * 历史页面 - 日历视图
- * 增强版：优化视觉效果、热力图颜色、今日脉冲效果
+ * Crystal Hydra 设计系统 - 玻璃拟态风格
  */
 
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
@@ -8,12 +8,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withTiming,
   Easing,
+  FadeIn,
 } from 'react-native-reanimated';
 import {
   format,
@@ -27,10 +30,74 @@ import {
 } from 'date-fns';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { useWaterStore } from '@/store/useWaterStore';
-import { Card } from '@/components/Card';
+import { SlideInGlassCard } from '@/components/Card';
 import { Layout } from '@/constants/Layout';
 import { WaterLog } from '@/types/models';
 import * as Haptics from 'expo-haptics';
+
+// SVG 图标组件
+function CalendarIcon({ size = 32, color = '#0EA5E9' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function WaterDropIcon({ size = 20, color = '#0EA5E9' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Defs>
+        <SvgLinearGradient id="dropGradHistory" x1="0%" y1="0%" x2="100%" y2="100%">
+          <Stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <Stop offset="100%" stopColor={color} stopOpacity="0.1" />
+        </SvgLinearGradient>
+      </Defs>
+      <Path
+        d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="url(#dropGradHistory)"
+      />
+    </Svg>
+  );
+}
+
+function ChevronLeftIcon({ size = 28, color = '#0EA5E9' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18L9 12L15 6"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function ChevronRightIcon({ size = 28, color = '#0EA5E9' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18L15 12L9 6"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
 interface DayData {
   date: Date;
@@ -40,7 +107,7 @@ interface DayData {
 }
 
 export default function HistoryScreen() {
-  const { colors } = useThemeColors();
+  const { colors, isDark } = useThemeColors();
   const { t, i18n } = useTranslation();
   const { settings, loadSettings } = useWaterStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -54,7 +121,7 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     todayPulse.value = withRepeat(
-      withTiming(1.1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
@@ -132,10 +199,10 @@ export default function HistoryScreen() {
 
   // 根据完成度获取热力图颜色
   const getHeatmapColor = (percentage: number) => {
-    if (percentage >= 100) return colors.progressComplete;
+    if (percentage >= 100) return colors.accent;
     if (percentage >= 75) return colors.progressExcellent;
     if (percentage >= 50) return colors.progressMedium;
-    if (percentage >= 25) return colors.progressHigh;
+    if (percentage >= 25) return colors.primary;
     if (percentage > 0) return colors.progressLow;
     return 'transparent';
   };
@@ -144,10 +211,20 @@ export default function HistoryScreen() {
     if (percentage >= 100) return 1;
     if (percentage >= 75) return 0.85;
     if (percentage >= 50) return 0.7;
-    if (percentage >= 25) return 0.5;
-    if (percentage > 0) return 0.3;
+    if (percentage >= 25) return 0.55;
+    if (percentage > 0) return 0.35;
     return 0;
   };
+
+  // 背景渐变色
+  const backgroundGradient: [string, string] = isDark
+    ? ['#0C1929', '#132337']
+    : ['#F0F9FF', '#E0F2FE'];
+
+  // 玻璃效果背景
+  const glassBackground = isDark
+    ? 'rgba(30, 58, 95, 0.4)'
+    : 'rgba(255, 255, 255, 0.5)';
 
   // 生成日历网格
   const renderCalendar = () => {
@@ -159,7 +236,7 @@ export default function HistoryScreen() {
     const weekDays =
       i18n.language === 'zh'
         ? ['日', '一', '二', '三', '四', '五', '六']
-        : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
     const paddingDays = Array(startDayOfWeek).fill(null);
 
@@ -188,7 +265,7 @@ export default function HistoryScreen() {
 
             const bgColor = getHeatmapColor(percentage);
             const bgOpacity = getHeatmapOpacity(percentage);
-            const showDarkText = percentage >= 50;
+            const showLightText = percentage >= 50;
 
             const DayWrapper = isToday && !isSelected ? Animated.View : View;
             const wrapperStyle = isToday && !isSelected ? todayPulseStyle : undefined;
@@ -208,23 +285,28 @@ export default function HistoryScreen() {
                         backgroundColor:
                           bgOpacity > 0
                             ? bgColor + Math.round(bgOpacity * 255).toString(16).padStart(2, '0')
-                            : colors.secondaryBackground,
+                            : glassBackground,
                       },
                       isSelected && {
                         borderWidth: 2,
                         borderColor: colors.primary,
+                        shadowColor: colors.primary,
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.4,
+                        shadowRadius: 8,
+                        elevation: 4,
                       },
                       isToday &&
                         !isSelected && {
                           borderWidth: 2,
-                          borderColor: colors.primary,
+                          borderColor: colors.accent,
                         },
                     ]}
                   >
                     <Text
                       style={[
                         styles.dayText,
-                        { color: showDarkText ? '#fff' : colors.text },
+                        { color: showLightText ? '#fff' : colors.text },
                         isToday && { fontWeight: Layout.fontWeight.bold },
                       ]}
                     >
@@ -251,13 +333,13 @@ export default function HistoryScreen() {
                   {
                     backgroundColor:
                       pct === 0
-                        ? colors.secondaryBackground
+                        ? glassBackground
                         : getHeatmapColor(pct) +
                           Math.round(getHeatmapOpacity(pct) * 255)
                             .toString(16)
                             .padStart(2, '0'),
                     borderWidth: pct === 0 ? 1 : 0,
-                    borderColor: colors.border,
+                    borderColor: isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(14, 165, 233, 0.2)',
                   },
                 ]}
               />
@@ -276,7 +358,7 @@ export default function HistoryScreen() {
     if (!selectedDate) {
       return (
         <View style={styles.detailPlaceholder}>
-          <Text style={styles.placeholderIcon}>📅</Text>
+          <CalendarIcon size={40} color={colors.textTertiary} />
           <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
             {t('history.tap_to_view')}
           </Text>
@@ -288,29 +370,34 @@ export default function HistoryScreen() {
     const dayData = monthData.get(dateKey);
     const percentage = dayData?.percentage || 0;
 
+    // 进度条渐变色
+    const progressGradient: [string, string] = percentage >= 100
+      ? [colors.accent, '#34D399']
+      : [colors.primary, '#38BDF8'];
+
     return (
       <View style={styles.detailContent}>
         <Text style={[styles.detailDate, { color: colors.text }]}>
           {format(selectedDate, i18n.language === 'zh' ? 'yyyy年M月d日' : 'MMMM d, yyyy')}
         </Text>
 
-        {/* 进度条 */}
+        {/* 进度条 - 渐变色 */}
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBarBg, { backgroundColor: colors.progressBackground }]}>
-            <View
+            <LinearGradient
+              colors={progressGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={[
                 styles.progressBarFill,
-                {
-                  backgroundColor: percentage >= 100 ? colors.progressComplete : colors.primary,
-                  width: `${Math.min(percentage, 100)}%`,
-                },
+                { width: `${Math.min(percentage, 100)}%` },
               ]}
             />
           </View>
           <Text
             style={[
               styles.progressPercentage,
-              { color: percentage >= 100 ? colors.progressComplete : colors.primary },
+              { color: percentage >= 100 ? colors.accent : colors.primary },
             ]}
           >
             {percentage}%
@@ -326,7 +413,7 @@ export default function HistoryScreen() {
               {t('history.total_intake')} (ml)
             </Text>
           </View>
-          <View style={[styles.detailStatDivider, { backgroundColor: colors.border }]} />
+          <View style={[styles.detailStatDivider, { backgroundColor: isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(14, 165, 233, 0.2)' }]} />
           <View style={styles.detailStatItem}>
             <Text style={[styles.detailStatValue, { color: colors.textSecondary }]}>
               {goalMl}
@@ -342,13 +429,13 @@ export default function HistoryScreen() {
             <Text style={[styles.logsTitle, { color: colors.text }]}>
               {t('history.records')} ({dayData.logs.length})
             </Text>
-            {dayData.logs.slice(0, 5).map((log, index) => (
+            {dayData.logs.slice(0, 5).map((log) => (
               <View
                 key={log.id}
-                style={[styles.logItem, { backgroundColor: colors.logItemBackground }]}
+                style={[styles.logItem, { backgroundColor: glassBackground }]}
               >
                 <View style={styles.logItemLeft}>
-                  <View style={[styles.timelineDot, { backgroundColor: colors.primary }]} />
+                  <WaterDropIcon size={16} color={colors.primary} />
                   <Text style={[styles.logAmount, { color: colors.text }]}>
                     {log.amount_ml} ml
                   </Text>
@@ -366,7 +453,7 @@ export default function HistoryScreen() {
           </View>
         ) : (
           <View style={styles.noRecordsContainer}>
-            <Text style={styles.noRecordsIcon}>💧</Text>
+            <WaterDropIcon size={36} color={colors.textTertiary} />
             <Text style={[styles.noRecords, { color: colors.textTertiary }]}>
               {t('history.no_records')}
             </Text>
@@ -377,56 +464,71 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top', 'left', 'right']}
-    >
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* 标题 */}
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {t('history.title')}
-          </Text>
-        </View>
+    <LinearGradient colors={backgroundGradient} style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* 标题 */}
+          <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t('history.title')}
+            </Text>
+          </Animated.View>
 
-        {/* 月份导航 */}
-        <Card variant="elevated" padding="compact" style={styles.monthNav}>
-          <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
-            <Text style={[styles.navButtonText, { color: colors.primary }]}>‹</Text>
-          </TouchableOpacity>
-          <Text style={[styles.monthTitle, { color: colors.text }]}>
-            {format(currentMonth, i18n.language === 'zh' ? 'yyyy年M月' : 'MMMM yyyy')}
-          </Text>
-          <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
-            <Text style={[styles.navButtonText, { color: colors.primary }]}>›</Text>
-          </TouchableOpacity>
-        </Card>
+          {/* 月份导航 */}
+          <SlideInGlassCard
+            intensity="light"
+            animationDelay={100}
+            padding="compact"
+            style={styles.monthNav}
+          >
+            <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
+              <ChevronLeftIcon size={24} color={colors.primary} />
+            </TouchableOpacity>
+            <Text style={[styles.monthTitle, { color: colors.text }]}>
+              {format(currentMonth, i18n.language === 'zh' ? 'yyyy年M月' : 'MMMM yyyy')}
+            </Text>
+            <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
+              <ChevronRightIcon size={24} color={colors.primary} />
+            </TouchableOpacity>
+          </SlideInGlassCard>
 
-        {/* 日历 */}
-        <Card variant="elevated" style={styles.calendarSection}>
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={{ color: colors.textSecondary }}>{t('common.loading')}</Text>
-            </View>
-          ) : (
-            renderCalendar()
-          )}
-        </Card>
+          {/* 日历 */}
+          <SlideInGlassCard
+            intensity="medium"
+            animationDelay={200}
+            style={styles.calendarSection}
+          >
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={{ color: colors.textSecondary }}>{t('common.loading')}</Text>
+              </View>
+            ) : (
+              renderCalendar()
+            )}
+          </SlideInGlassCard>
 
-        {/* 选中日期详情 */}
-        <Card variant="elevated" style={styles.detailSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t('history.selected_day')}
-          </Text>
-          {renderSelectedDayDetail()}
-        </Card>
-      </ScrollView>
-    </SafeAreaView>
+          {/* 选中日期详情 */}
+          <SlideInGlassCard
+            intensity="medium"
+            animationDelay={300}
+            style={styles.detailSection}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t('history.selected_day')}
+            </Text>
+            {renderSelectedDayDetail()}
+          </SlideInGlassCard>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
   content: {
@@ -451,10 +553,6 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  navButtonText: {
-    fontSize: 32,
-    fontWeight: Layout.fontWeight.regular,
   },
   monthTitle: {
     fontSize: Layout.fontSize.headline,
@@ -490,7 +588,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Layout.borderRadius.sm,
+    borderRadius: Layout.borderRadius.md,
   },
   dayText: {
     fontSize: Layout.fontSize.footnote,
@@ -512,7 +610,7 @@ const styles = StyleSheet.create({
   legendDot: {
     width: 14,
     height: 14,
-    borderRadius: 3,
+    borderRadius: 4,
   },
   detailSection: {},
   sectionTitle: {
@@ -524,10 +622,7 @@ const styles = StyleSheet.create({
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  placeholderIcon: {
-    fontSize: 32,
-    marginBottom: Layout.spacing.sm,
+    gap: Layout.spacing.sm,
   },
   placeholderText: {
     fontSize: Layout.fontSize.footnote,
@@ -546,13 +641,13 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     flex: 1,
-    height: 8,
-    borderRadius: 4,
+    height: 10,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 5,
   },
   progressPercentage: {
     fontSize: Layout.fontSize.callout,
@@ -596,18 +691,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Layout.spacing.md,
-    borderRadius: Layout.borderRadius.sm,
+    borderRadius: Layout.borderRadius.md,
     marginBottom: Layout.spacing.sm,
   },
   logItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  timelineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Layout.spacing.md,
+    gap: Layout.spacing.sm,
   },
   logAmount: {
     fontSize: Layout.fontSize.footnote,
@@ -624,10 +714,7 @@ const styles = StyleSheet.create({
   noRecordsContainer: {
     alignItems: 'center',
     paddingVertical: Layout.spacing.xl,
-  },
-  noRecordsIcon: {
-    fontSize: 32,
-    marginBottom: Layout.spacing.sm,
+    gap: Layout.spacing.sm,
   },
   noRecords: {
     fontSize: Layout.fontSize.footnote,

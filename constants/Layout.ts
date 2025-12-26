@@ -1,24 +1,49 @@
 /**
- * 布局和样式常量
+ * 布局和样式常量 - Crystal Hydra 设计系统
  * 统一管理圆角、间距、字体大小、阴影等样式值
  */
 
 import { Platform } from 'react-native';
 
 export const Layout = {
-  // 圆角 - 更现代的层次
+  // 圆角 - 现代柔和
   borderRadius: {
-    xs: 6,
-    sm: 10,
-    md: 14,
-    lg: 20,
-    xl: 28,
+    none: 0,
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 32,
+    full: 9999,
+    // 兼容旧版
     xxl: 36,
     round: 9999,
   },
 
-  // 间距 - 8px 网格系统
+  // 间距 - 4px 网格系统
   spacing: {
+    '0': 0,
+    '0.5': 2,
+    '1': 4,
+    '1.5': 6,
+    '2': 8,
+    '2.5': 10,
+    '3': 12,
+    '4': 16,
+    '5': 20,
+    '6': 24,
+    '7': 28,
+    '8': 32,
+    '9': 36,
+    '10': 40,
+    '12': 48,
+    '14': 56,
+    '16': 64,
+    '20': 80,
+    '24': 96,
+    // 兼容旧版
     xxs: 2,
     xs: 4,
     sm: 8,
@@ -40,7 +65,7 @@ export const Layout = {
     section: 24,
   },
 
-  // 字体大小 - 更明显的层次
+  // 字体大小 - 明显的层次
   fontSize: {
     caption: 11,
     footnote: 13,
@@ -65,6 +90,7 @@ export const Layout = {
 
   // 字重
   fontWeight: {
+    light: '300' as const,
     regular: '400' as const,
     medium: '500' as const,
     semibold: '600' as const,
@@ -74,7 +100,9 @@ export const Layout = {
 
   // 行高
   lineHeight: {
+    none: 1,
     tight: 1.2,
+    snug: 1.375,
     normal: 1.4,
     relaxed: 1.6,
     loose: 1.8,
@@ -90,7 +118,7 @@ export const Layout = {
     xxl: 48,
   },
 
-  // 阴影预设 - 跨平台兼容
+  // 阴影预设 - Crystal Hydra 配色
   shadow: {
     none: {
       shadowColor: 'transparent',
@@ -99,42 +127,68 @@ export const Layout = {
       shadowRadius: 0,
       elevation: 0,
     },
+    xs: {
+      shadowColor: '#0EA5E9',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
     sm: {
-      shadowColor: '#0077B6',
+      shadowColor: '#0EA5E9',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.08,
       shadowRadius: 4,
       elevation: 2,
     },
     md: {
-      shadowColor: '#0077B6',
+      shadowColor: '#0EA5E9',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: 4,
     },
     lg: {
-      shadowColor: '#0077B6',
+      shadowColor: '#0EA5E9',
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.12,
       shadowRadius: 16,
       elevation: 8,
     },
     xl: {
-      shadowColor: '#0077B6',
+      shadowColor: '#0EA5E9',
       shadowOffset: { width: 0, height: 12 },
       shadowOpacity: 0.15,
       shadowRadius: 24,
       elevation: 12,
     },
+    // 发光阴影
+    glow: {
+      primary: {
+        shadowColor: '#0EA5E9',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 8,
+      },
+      accent: {
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 8,
+      },
+    },
   },
 
   // 动画时长
   animation: {
+    instant: 100,
     fast: 150,
     normal: 250,
     slow: 400,
     slower: 600,
+    slowest: 800,
   },
 
   // 触摸响应尺寸
@@ -153,8 +207,24 @@ export const Layout = {
     },
     inputHeight: 48,
     cardMinHeight: 80,
-    progressRingSize: 240,
+    progressRingSize: 280, // 增大进度环
     quickButtonMinHeight: 100,
+    tabBarHeight: Platform.OS === 'ios' ? 88 : 64,
+    headerHeight: Platform.OS === 'ios' ? 44 : 56,
+  },
+
+  // 玻璃拟态效果
+  glass: {
+    blur: {
+      light: 8,
+      medium: 16,
+      heavy: 24,
+    },
+    opacity: {
+      light: 0.7,
+      medium: 0.5,
+      strong: 0.85,
+    },
   },
 } as const;
 
@@ -162,3 +232,5 @@ export const Layout = {
 export type LayoutType = typeof Layout;
 export type ShadowLevel = keyof typeof Layout.shadow;
 export type FontSize = keyof typeof Layout.fontSize;
+export type BorderRadius = keyof typeof Layout.borderRadius;
+export type Spacing = keyof typeof Layout.spacing;
