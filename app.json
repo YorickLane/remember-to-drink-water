@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Hydrate",
-    "slug": "water-reminder",
+    "slug": "remember-to-drink-water",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
