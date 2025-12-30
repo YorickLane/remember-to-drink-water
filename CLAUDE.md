@@ -21,12 +21,11 @@ npx tsc --noEmit    # TypeScript 类型检查
 npm run pre-release-check  # lint + tsc + audit
 
 # 构建与发布 (EAS)
-eas build --profile development --platform ios
-eas build --profile development --platform android
-eas build --profile production --platform ios
-eas build --profile production --platform android
-eas submit --platform ios
-eas submit --platform android
+eas build --platform ios          # 构建 iOS（自动处理证书）
+eas build --platform android      # 构建 Android
+eas build --platform all          # 同时构建两平台
+eas submit --platform ios --latest    # 提交最新构建到 App Store
+eas submit --platform android --latest # 提交最新构建到 Google Play
 ```
 
 ## 技术架构
