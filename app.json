@@ -65,7 +65,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "privacyPolicyUrl": "https://nwarch.com/privacy/water-reminder",
+      "privacyPolicyUrl": "https://yoricklane.github.io/remember-to-drink-water/privacy.html",
       "supportEmail": "support@nwarch.com",
       "router": {},
       "eas": {
