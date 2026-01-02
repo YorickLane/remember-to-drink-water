@@ -60,7 +60,7 @@ $MAGICK_CMD -size 1024x500 \
     \( "$SOURCE_ICON" -resize 200x200 \) \
     -gravity center -geometry +0-50 -composite \
     -gravity center -font Helvetica-Bold -pointsize 72 -fill white \
-    -annotate +0+100 "Hydrate" \
+    -annotate +0+100 "SipRemind" \
     -gravity center -font Helvetica -pointsize 28 -fill 'rgba(255,255,255,0.9)' \
     -annotate +0+160 "Stay Hydrated, Stay Healthy" \
     "$OUTPUT_DIR/feature-graphic.png"
