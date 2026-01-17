@@ -34,12 +34,6 @@
 ### 项目规划文档
 - [PRD.md](./PRD.md) - 产品需求文档（背景、目标、功能范围）
 - [TECH-DESIGN.md](./TECH-DESIGN.md) - 技术方案和架构设计
-- [DEV-CHECKLIST.md](./DEV-CHECKLIST.md) - 开发执行清单
-
-### 开发指南
-- [README-START.md](./README-START.md) - 环境搭建和项目初始化
-- [SUGGESTIONS.md](./SUGGESTIONS.md) - 开发建议和最佳实践
-- [MCP-SETUP.md](./.claude/MCP-SETUP.md) - MCP 服务器配置说明
 
 ### 发布相关
 - [RELEASE-GUIDE.md](./RELEASE-GUIDE.md) - 应用发布完整指南（EAS Build 说明）
@@ -47,8 +41,10 @@
 - [STORE-DESCRIPTION.md](./STORE-DESCRIPTION.md) - 商店描述、关键词、截图要求
 - [WEB-DEPLOYMENT.md](./WEB-DEPLOYMENT.md) - Web 版本部署指南
 
-### 下一步行动
-- [NEXT-STEPS.md](./NEXT-STEPS.md) - 当前进度和下一步计划 📍
+### docs 目录
+- [docs/APP-ASSETS.md](./docs/APP-ASSETS.md) - 应用图标与启动页图片规范
+- [docs/VERSIONING.md](./docs/VERSIONING.md) - 版本号规范
+- [docs/archived/](./docs/archived/) - 已归档的开发阶段文档
 
 ---
 

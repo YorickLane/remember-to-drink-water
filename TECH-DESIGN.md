@@ -2,36 +2,51 @@
 
 ## 1. 技术栈
 
-- Expo + React Native + TypeScript
-- expo-router（或 react-navigation）
-- 状态：Zustand
-- 本地存储：expo-sqlite
-- 通知：expo-notifications
-- 图表：react-native-gifted-charts（或 victory-native）
-- 构建上架：EAS Build + Submit
+- **框架**: Expo SDK 54 + React Native 0.81 + TypeScript
+- **路由**: expo-router（文件系统路由）
+- **状态管理**: Zustand
+- **本地存储**: expo-sqlite (移动端) / AsyncStorage (Web)
+- **通知**: expo-notifications
+- **图表**: react-native-gifted-charts
+- **国际化**: i18next + react-i18next + expo-localization
+- **构建上架**: EAS Build + Submit
 
-## 2. 目录结构建议
+## 2. 目录结构
 
 ```
-/app
-  /(tabs)
-    index.tsx            # 今日Home
-    stats.tsx            # 统计
-    history.tsx          # 历史
-    settings.tsx         # 设置
-  /add.tsx               # 快速记录
-/components
+/app                     # expo-router 页面（文件系统路由）
+  /(tabs)                # 底部 Tab 导航
+    index.tsx            # 今日首页
+    stats.tsx            # 统计图表
+    history.tsx          # 历史日历
+    explore.tsx          # 设置页
+    _layout.tsx          # Tab 导航布局
+  _layout.tsx            # 根布局
+  privacy.tsx            # 隐私政策页
+  modal.tsx              # 模态页
+/components              # 可复用组件
   ProgressRing.tsx
   QuickAddButtons.tsx
   WaterLogList.tsx
-  Charts.tsx
-/lib
-  db.ts                  # sqlite封装
+  ErrorBoundary.tsx
+/lib                     # 核心业务逻辑
+  db.ts                  # 数据库访问层入口
   notifications.ts       # 通知调度
+  /storage               # 平台适配存储层
+    index.ts             # 统一入口
+    mobile.ts            # SQLite 实现 (iOS/Android)
+    web.ts               # AsyncStorage 实现 (Web)
+    types.ts             # 存储接口定义
 /store
-  useWaterStore.ts
+  useWaterStore.ts       # Zustand 全局状态
 /types
-  models.ts
+  models.ts              # 核心数据模型
+/locales                 # i18n 翻译文件
+  /en                    # 英文
+  /zh                    # 中文
+/constants               # 主题、颜色、布局常量
+/hooks                   # 自定义 Hooks
+/utils                   # 工具函数
 ```
 
 ## 3. 数据设计（SQLite）
@@ -57,6 +72,7 @@
 | reminder_end | "22:00" |
 | reminder_interval_min | 120 |
 | unit | "ml" |
+| language | "system" / "en" / "zh" |
 
 ## 4. 通知调度策略
 
